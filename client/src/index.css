@@ -1177,6 +1177,14 @@ input, select, textarea, button {
     padding: 10px 0;
     border-bottom: 1px solid var(--border-light, rgba(255,255,255,0.05));
     font-size: 0.95rem;
+    gap: 16px;
+  }
+  .mobile-cards-table td[data-label="الإجراءات"] {
+    align-items: flex-start;
+  }
+  .mobile-cards-table td[data-label="الإجراءات"] .action-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   .mobile-cards-table td:last-child {
     border-bottom: none;
