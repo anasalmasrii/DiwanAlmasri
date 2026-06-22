@@ -1180,11 +1180,14 @@ input, select, textarea, button {
     gap: 16px;
   }
   .mobile-cards-table td[data-label="الإجراءات"] {
+    flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
   .mobile-cards-table td[data-label="الإجراءات"] .action-buttons {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
   }
   .mobile-cards-table td:last-child {
     border-bottom: none;
