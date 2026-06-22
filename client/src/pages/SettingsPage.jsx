@@ -272,7 +272,7 @@ export default function SettingsPage() {
             </button>
           </div>
           <div className="table-wrapper">
-            <table className="data-table">
+            <table className="data-table mobile-cards-table">
               <thead>
                 <tr>
                   <th>الاسم</th>
@@ -288,20 +288,20 @@ export default function SettingsPage() {
                 ) : (
                   users.map((u) => (
                     <tr key={u.id}>
-                      <td style={{ fontWeight: 600 }}>{u.full_name}</td>
-                      <td style={{ direction: 'ltr', textAlign: 'right' }}>{u.username}</td>
-                      <td>
+                      <td data-label="الاسم" style={{ fontWeight: 600 }}>{u.full_name}</td>
+                      <td data-label="اسم المستخدم" style={{ direction: 'ltr', textAlign: 'right' }}>{u.username}</td>
+                      <td data-label="الدور">
                         {u.role === 'super_admin' ? (
                           <span className="badge badge-gold">مسؤول رئيسي</span>
                         ) : (
                           <span className="badge badge-active">عضو إداري</span>
                         )}
                       </td>
-                      <td>
+                      <td data-label="الصلاحيات">
                         {u.role === 'super_admin' ? (
                           <span style={{ color: 'var(--text-muted)' }}>كامل الصلاحيات</span>
                         ) : (
-                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                             {u.permissions.dashboard && <span className="badge" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border)' }}>لوحة المعلومات</span>}
                             {u.permissions.members && <span className="badge" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border)' }}>الأعضاء</span>}
                             {u.permissions.payments && <span className="badge" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border)' }}>الاشتراكات</span>}
@@ -309,7 +309,7 @@ export default function SettingsPage() {
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td data-label="الإجراءات">
                         <div className="action-buttons">
                           <button
                             className="btn btn-secondary btn-sm"
