@@ -9,19 +9,19 @@
 /* --- المتغيرات العامة --- */
 :root {
   /* الألوان الأساسية */
-  --bg-primary: #06081a;
-  --bg-secondary: #0d1025;
-  --bg-tertiary: #141733;
-  --bg-card: rgba(20, 23, 51, 0.7);
-  --bg-card-hover: rgba(30, 34, 70, 0.8);
+  --bg-primary: #004A4D;
+  --bg-secondary: #00373A;
+  --bg-tertiary: #002527;
+  --bg-card: rgba(0, 55, 58, 0.7);
+  --bg-card-hover: rgba(0, 74, 77, 0.8);
   --bg-glass: rgba(255, 255, 255, 0.03);
-  --bg-header: rgba(13, 16, 37, 0.8);
+  --bg-header: rgba(0, 55, 58, 0.8);
 
-  /* اللون الذهبي المميز */
-  --accent: #d4a853;
-  --accent-hover: #e8bc6a;
-  --accent-glow: rgba(212, 168, 83, 0.3);
-  --accent-subtle: rgba(212, 168, 83, 0.1);
+  /* اللون الأخضر الفاتح (Lime) المميز */
+  --accent: #94BC45;
+  --accent-hover: #a5d04c;
+  --accent-glow: rgba(148, 188, 69, 0.3);
+  --accent-subtle: rgba(148, 188, 69, 0.1);
 
   /* ألوان الحالة */
   --success: #10b981;
@@ -47,7 +47,7 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px rgba(212, 168, 83, 0.15);
+  --shadow-glow: 0 0 30px rgba(148, 188, 69, 0.15);
 
   /* التنسيق */
   --radius-sm: 8px;
@@ -74,12 +74,12 @@
   --bg-glass: rgba(0, 0, 0, 0.02);
   --bg-header: rgba(255, 255, 255, 0.9);
 
-  --accent: #b78a3b;
-  --accent-hover: #9c732c;
-  --accent-glow: rgba(183, 138, 59, 0.2);
-  --accent-subtle: rgba(183, 138, 59, 0.1);
+  --accent: #004A4D;
+  --accent-hover: #00373A;
+  --accent-glow: rgba(0, 74, 77, 0.2);
+  --accent-subtle: rgba(0, 74, 77, 0.1);
 
-  --text-primary: #0a0f1d;
+  --text-primary: #231F20;
   --text-secondary: #334155;
   --text-muted: #475569;
 
@@ -91,12 +91,12 @@
 
   --border: rgba(0, 0, 0, 0.08);
   --border-hover: rgba(0, 0, 0, 0.15);
-  --border-accent: rgba(183, 138, 59, 0.3);
+  --border-accent: rgba(0, 74, 77, 0.3);
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 30px rgba(183, 138, 59, 0.1);
+  --shadow-glow: 0 0 30px rgba(0, 74, 77, 0.1);
 }
 
 /* --- الإعدادات الأساسية --- */
@@ -131,9 +131,9 @@ body::before {
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse at 20% 20%, rgba(212, 168, 83, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(20, 23, 51, 0.5) 0%, transparent 80%);
+    radial-gradient(ellipse at 20% 20%, rgba(148, 188, 69, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(0, 74, 77, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(35, 31, 32, 0.5) 0%, transparent 80%);
   z-index: -1;
   pointer-events: none;
 }
