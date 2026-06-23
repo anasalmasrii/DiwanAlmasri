@@ -125,7 +125,7 @@ export default function DefaultersPage() {
                     <td data-label="رقم الهاتف" style={{ direction: 'ltr', textAlign: 'right' }}>
                       {member.phone_number || '—'}
                     </td>
-                    <td data-label="تاريخ الانضمام">{member.join_date}</td>
+                    <td data-label="تاريخ الانضمام">{member.join_date ? member.join_date.split('T')[0] : '—'}</td>
                     <td data-label="إجمالي الدفعات السابقة">
                       <span className="payment-count">{member.total_payments || 0}</span>
                     </td>
