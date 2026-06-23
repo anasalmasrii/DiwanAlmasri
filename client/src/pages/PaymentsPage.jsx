@@ -339,19 +339,37 @@ export default function PaymentsPage() {
                 {formError && <div className="login-error">⚠️ {formError}</div>}
                 <div className="form-group">
                   <label className="form-label">العضو</label>
-                <select
-                  className="form-select"
-                  value={form.member_id}
-                  onChange={(e) => setForm({ ...form, member_id: e.target.value })}
-                  disabled={!!editingPayment}
-                >
-                  <option value="">-- اختر العضو --</option>
+                  <select
+                    className="form-select"
+                    value={form.member_id}
+                    onChange={(e) => setForm({ ...form, member_id: e.target.value })}
+                    disabled={!!editingPayment}
+                  >
+                    <option value="">-- اختر العضو --</option>
                     {members.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.full_name}
                       </option>
                     ))}
                   </select>
+                  {form.member_id && (() => {
+                    const selectedMember = members.find(m => m.id === parseInt(form.member_id));
+                    if (selectedMember && selectedMember.months_owed > 0) {
+                      return (
+                        <div style={{ marginTop: '10px', padding: '12px', background: 'var(--danger-subtle, #ffebee)', color: 'var(--danger, #d32f2f)', borderRadius: 'var(--radius-sm, 6px)', fontSize: '0.9rem', border: '1px solid currentColor' }}>
+                          <strong>⚠️ متأخرات:</strong> العضو متأخر لمدة <strong>{selectedMember.months_owed} أشهر</strong><br/>
+                          (القيمة المطلوبة: <strong>{selectedMember.months_owed * 10} د.أ</strong>)
+                        </div>
+                      );
+                    } else if (selectedMember && selectedMember.months_owed <= 0) {
+                      return (
+                        <div style={{ marginTop: '10px', padding: '12px', background: 'var(--success-subtle, #e8f5e9)', color: 'var(--success, #388e3c)', borderRadius: 'var(--radius-sm, 6px)', fontSize: '0.9rem', border: '1px solid currentColor' }}>
+                          <strong>✅ ممتاز:</strong> العضو مسدد لجميع اشتراكاته ولا يوجد عليه متأخرات.
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
 
                 <div className="form-row">
