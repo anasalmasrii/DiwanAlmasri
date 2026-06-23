@@ -295,7 +295,7 @@ export default function PaymentsPage() {
                     <td data-label="المبلغ" style={{ fontWeight: 700, color: 'var(--success)' }}>
                       {payment.amount.toLocaleString('ar-JO')} د.أ
                     </td>
-                    <td data-label="النوع"><span className={`badge ${payment.payment_type === 'تبرع' ? 'badge-warning' : 'badge-active'}`}>{payment.payment_type || 'اشتراك'}</span></td>
+                    <td data-label="النوع"><span className={`badge ${payment.payment_type === 'مساهمة' ? 'badge-warning' : 'badge-active'}`}>{payment.payment_type || 'اشتراك'}</span></td>
                     <td data-label="تاريخ الدفع">{payment.payment_date}</td>
                     <td data-label="ملاحظات" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={payment.notes}>
                       {payment.notes || '—'}
@@ -430,7 +430,7 @@ export default function PaymentsPage() {
                       required
                     >
                       <option value="اشتراك">اشتراك</option>
-                      <option value="تبرع">تبرع</option>
+                      <option value="مساهمة">مساهمة</option>
                     </select>
                   </div>
 

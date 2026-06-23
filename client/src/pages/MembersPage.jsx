@@ -619,7 +619,7 @@ export default function MembersPage() {
                     <label className="form-label">نوع الدفع *</label>
                     <select className="form-select" value={paymentForm.payment_type} onChange={(e) => setPaymentForm({ ...paymentForm, payment_type: e.target.value })} required>
                       <option value="اشتراك">اشتراك</option>
-                      <option value="تبرع">تبرع</option>
+                      <option value="مساهمة">مساهمة</option>
                     </select>
                   </div>
                   <div className="form-group">
