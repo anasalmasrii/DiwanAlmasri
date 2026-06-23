@@ -204,7 +204,7 @@ export default function SettingsPage() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-primary">حفظ الاسم</button>
+            <button type="submit" className="btn btn-primary" style={{ marginTop: '16px' }}>حفظ الاسم</button>
           </form>
         </div>
 
@@ -254,7 +254,7 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-            <button type="submit" className="btn btn-primary">تحديث كلمة المرور</button>
+            <button type="submit" className="btn btn-primary" style={{ marginTop: '16px' }}>تحديث كلمة المرور</button>
           </form>
         </div>
       </div>
