@@ -22,7 +22,7 @@ export default function Sidebar({ isOpen, onClose }) {
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <span className="sidebar-logo-icon">🏛️</span>
+          <img src="/DiwanAlmasri-logo.png" alt="شعار" className="sidebar-logo-icon" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
           <span>ديوان المصري</span>
         </div>
         <div className="sidebar-subtitle">نظام إدارة الاشتراكات</div>

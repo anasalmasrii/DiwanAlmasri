@@ -41,7 +41,9 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <div className="login-logo">🏛️</div>
+        <div className="login-logo" style={{ marginBottom: '16px' }}>
+          <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
+        </div>
         <h1 className="login-title">ديوان المصري</h1>
         <p className="login-subtitle">نظام إدارة الاشتراكات والمحاسبة</p>
 
