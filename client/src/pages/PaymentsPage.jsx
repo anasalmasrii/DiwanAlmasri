@@ -296,7 +296,7 @@ export default function PaymentsPage() {
                       {payment.amount.toLocaleString('ar-JO')} د.أ
                     </td>
                     <td data-label="النوع"><span className={`badge ${payment.payment_type === 'مساهمة' ? 'badge-warning' : 'badge-active'}`}>{payment.payment_type || 'اشتراك'}</span></td>
-                    <td data-label="تاريخ الدفع">{payment.payment_date}</td>
+                    <td data-label="تاريخ الدفع">{payment.payment_date ? payment.payment_date.split('T')[0] : '—'}</td>
                     <td data-label="ملاحظات" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={payment.notes}>
                       {payment.notes || '—'}
                     </td>
