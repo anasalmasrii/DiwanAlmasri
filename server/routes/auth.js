@@ -23,9 +23,11 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
   }
 
+  const cleanUsername = username.trim();
+
   try {
     const db = getDb();
-    const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    const user = await db.get('SELECT * FROM users WHERE LOWER(username) = LOWER(?)', [cleanUsername]);
 
     if (!user || !bcrypt.compareSync(password, user.password_hash)) {
       return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
