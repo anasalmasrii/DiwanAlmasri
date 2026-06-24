@@ -349,7 +349,7 @@ export default function PaymentsPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {group.subscription && (
                             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.7rem', width: '40px', color: 'var(--text-muted)' }}>اشتراك:</span>
+                              <span style={{ fontSize: '0.75rem', minWidth: '45px', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>اشتراك:</span>
                               <button
                                 className="btn btn-secondary btn-sm"
                                 style={{ padding: '2px 6px', fontSize: '0.8rem' }}
@@ -370,7 +370,7 @@ export default function PaymentsPage() {
                           )}
                           {group.contribution && (
                             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.7rem', width: '40px', color: 'var(--text-muted)' }}>مساهمة:</span>
+                              <span style={{ fontSize: '0.75rem', minWidth: '45px', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>مساهمة:</span>
                               <button
                                 className="btn btn-secondary btn-sm"
                                 style={{ padding: '2px 6px', fontSize: '0.8rem' }}
