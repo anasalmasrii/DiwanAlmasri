@@ -85,6 +85,15 @@ export default function DashboardPage() {
 
       {/* بطاقات الإحصائيات */}
       <div className="stats-grid">
+        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="💰"
+            value={stats.totalTreasury}
+            label="إجمالي الصندوق (قبل المصاريف)"
+            color="blue"
+            suffix="د.أ"
+          />
+        </Link>
         <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} title="صافي الصندوق = إجمالي الإيرادات - إجمالي المصاريف">
           <StatCard
             icon="🏦"
