@@ -32,6 +32,7 @@ export default function PaymentsPage() {
   const [filterMonth, setFilterMonth] = useState(initialMemberFilter ? '' : now.getMonth() + 1);
   const [filterYear, setFilterYear] = useState(initialMemberFilter ? '' : now.getFullYear());
   const [filterMember, setFilterMember] = useState(initialMemberFilter);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // حقول نموذج الدفعة
   const [form, setForm] = useState({
@@ -191,6 +192,15 @@ export default function PaymentsPage() {
     return acc;
   }, {})).sort((a, b) => a.member_name.localeCompare(b.member_name));
 
+  // Filter grouped payments by search query
+  const filteredGroupedPayments = groupedPayments.filter(group => {
+    if (!searchQuery) return true;
+    const lowerQuery = searchQuery.toLowerCase();
+    const nameMatch = group.member_name.toLowerCase().includes(lowerQuery);
+    const notesMatch = group.notes.some(n => n && n.toLowerCase().includes(lowerQuery));
+    return nameMatch || notesMatch;
+  });
+
   if (loading) {
     return (
       <div className="loading-spinner">
@@ -266,6 +276,21 @@ export default function PaymentsPage() {
                 ))}
               </select>
             </div>
+
+            <div className="form-group" style={{ flexGrow: 1, minWidth: '200px' }}>
+              <label className="form-label">بحث</label>
+              <div className="search-input-wrapper" style={{ position: 'relative' }}>
+                <span className="search-icon" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ paddingRight: '36px' }}
+                  placeholder="ابحث بالاسم أو الملاحظات..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -309,7 +334,7 @@ export default function PaymentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {groupedPayments.map((group, idx) => {
+                {filteredGroupedPayments.map((group, idx) => {
                   let statusLabel = '';
                   let statusClass = '';
                   if (group.subscription && group.contribution) {
