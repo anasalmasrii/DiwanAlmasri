@@ -124,7 +124,7 @@ export default function DashboardPage() {
           <StatCard
             icon="💰"
             value={stats.monthlyRevenueTotal}
-            label={`إجمالي إيرادات شهر ${stats.currentMonth}`}
+            label={stats.currentMonth === 'all' ? 'إجمالي إيرادات جميع الأشهر' : `إجمالي إيرادات شهر ${stats.currentMonth}`}
             color="green"
             suffix="د.أ"
           />
