@@ -106,7 +106,7 @@ export default function DashboardPage() {
           <StatCard
             icon="💰"
             value={stats.monthlyRevenueTotal}
-            label={`إجمالي إيرادات ${monthName}`}
+            label={`إجمالي إيرادات شهر ${stats.currentMonth}`}
             color="green"
             suffix="د.أ"
           />
@@ -133,7 +133,7 @@ export default function DashboardPage() {
           <StatCard
             icon="✅"
             value={stats.paidSubscriptionsCount}
-            label={`المسددون للاشتراك (${monthName})`}
+            label={`المسددون للاشتراك (شهر ${stats.currentMonth})`}
             color="blue"
           />
         </Link>
