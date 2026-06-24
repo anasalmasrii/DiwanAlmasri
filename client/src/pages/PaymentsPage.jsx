@@ -228,7 +228,7 @@ export default function PaymentsPage() {
       {/* الفلاتر */}
       <div className="card" style={{ marginBottom: '20px' }}>
         <div className="card-body" style={{ padding: '16px 24px' }}>
-          <div className="form-row" style={{ maxWidth: '800px', alignItems: 'flex-end' }}>
+          <div className="form-row" style={{ alignItems: 'flex-end' }}>
             <div className="form-group">
               <label className="form-label">الشهر</label>
               <select
