@@ -43,8 +43,12 @@ router.get('/', async (req, res) => {
     );
     const monthlyRevenueContributions = revenueContribResult ? parseFloat(revenueContribResult.total) : 0;
 
-    // إجمالي الإيرادات
+    // إجمالي الإيرادات (هذا الشهر فقط)
     const monthlyRevenueTotal = monthlyRevenueSubscriptions + monthlyRevenueContributions;
+
+    // إجمالي أموال الصندوق الكلية (منذ البداية وحتى المسبق)
+    const treasuryResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM payments");
+    const totalTreasury = treasuryResult ? parseFloat(treasuryResult.total) : 0;
 
     // عدد الأعضاء الذين سددوا هذا الشهر (اشتراكات فقط)
     const paidResult = await db.get(
@@ -75,6 +79,7 @@ router.get('/', async (req, res) => {
       monthlyRevenueTotal,
       monthlyRevenueSubscriptions,
       monthlyRevenueContributions,
+      totalTreasury,
       paidSubscriptionsCount,
       paidContributionsCount,
       unpaidCount,

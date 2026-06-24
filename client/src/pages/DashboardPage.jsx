@@ -56,6 +56,13 @@ export default function DashboardPage() {
       {/* بطاقات الإحصائيات */}
       <div className="stats-grid">
         <StatCard
+          icon="🏦"
+          value={stats.totalTreasury}
+          label="إجمالي أموال الصندوق (كامل الإيرادات)"
+          color="green"
+          suffix="د.أ"
+        />
+        <StatCard
           icon="👥"
           value={stats.totalMembers}
           label="إجمالي الأعضاء النشطين"
