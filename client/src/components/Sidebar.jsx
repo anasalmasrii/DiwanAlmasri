@@ -17,6 +17,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { path: '/payments', icon: '💰', label: 'الاشتراكات والدفعات', perm: 'payments' },
     { path: '/defaulters', icon: '⚠️', label: 'المتخلفين عن السداد', perm: 'defaulters' },
     { path: '/expenses', icon: '🛠️', label: 'مصاريف وصيانة الديوان', perm: 'expenses' },
+    { path: '/reports', icon: '📄', label: 'التقارير والطباعة', perm: null },
   ];
 
   return (
@@ -31,7 +32,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
       <nav className="sidebar-nav">
         {navItems.map((item) =>
-          hasPermission(item.perm) ? (
+          (!item.perm || hasPermission(item.perm)) ? (
             <NavLink
               key={item.path}
               to={item.path}
