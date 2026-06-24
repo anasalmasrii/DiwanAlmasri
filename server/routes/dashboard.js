@@ -36,9 +36,9 @@ router.get('/', async (req, res) => {
     );
     const monthlyRevenue = revenueResult ? parseFloat(revenueResult.total) : 0;
 
-    // عدد الأعضاء الذين سددوا هذا الشهر
+    // عدد الأعضاء الذين سددوا هذا الشهر (اشتراكات فقط)
     const paidResult = await db.get(
-      'SELECT COUNT(DISTINCT member_id) as count FROM payments WHERE month = ? AND year = ?',
+      "SELECT COUNT(DISTINCT member_id) as count FROM payments WHERE month = ? AND year = ? AND payment_type = 'اشتراك'",
       [currentMonth, currentYear]
     );
     const paidCount = paidResult ? parseInt(paidResult.count, 10) : 0;
@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
     const unpaidResult = await db.get(`
       SELECT COUNT(*) as count FROM members m
       WHERE m.id NOT IN (
-        SELECT member_id FROM payments WHERE month = ? AND year = ?
+        SELECT member_id FROM payments WHERE month = ? AND year = ? AND payment_type = 'اشتراك'
       )
     `, [currentMonth, currentYear]);
     const unpaidCount = unpaidResult ? parseInt(unpaidResult.count, 10) : 0;
