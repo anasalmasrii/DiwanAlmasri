@@ -13,6 +13,7 @@ import memberRoutes from './routes/members.js';
 import paymentRoutes from './routes/payments.js';
 import dashboardRoutes from './routes/dashboard.js';
 import userRoutes from './routes/users.js';
+import seedRoutes from './routes/seed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +30,7 @@ app.use('/api/members', memberRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/seed-members', seedRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'ديوان المصري - الخادم يعمل بنجاح' });

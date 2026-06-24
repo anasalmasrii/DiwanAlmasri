@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
         (cast(strftime('%Y', 'now') as integer) - cast(strftime('%Y', m.join_date) as integer)) * 12 
         + (cast(strftime('%m', 'now') as integer) - cast(strftime('%m', m.join_date) as integer)) 
         + 1 
-        - (SELECT COUNT(*) FROM payments WHERE member_id = m.id)
+        - (SELECT COUNT(*) FROM payments WHERE member_id = m.id AND payment_type = 'اشتراك')
       ) as months_owed,
       CASE
         WHEN EXISTS (SELECT 1 FROM payments WHERE member_id = m.id AND month = ? AND year = ?)
