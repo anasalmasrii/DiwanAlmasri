@@ -361,13 +361,13 @@ input, select, textarea, button {
 .stat-card::before {
   content: '';
   position: absolute;
-  top: 12px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  opacity: 0.12;
-  transition: opacity var(--transition-normal), transform var(--transition-normal);
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 0 0 0 80px;
+  opacity: 0.08;
+  transition: opacity var(--transition-normal);
 }
 
 .stat-card:hover {
@@ -377,8 +377,7 @@ input, select, textarea, button {
 }
 
 .stat-card:hover::before {
-  opacity: 0.18;
-  transform: scale(1.05);
+  opacity: 0.15;
 }
 
 .stat-card.gold::before { background: var(--accent); }
@@ -389,11 +388,6 @@ input, select, textarea, button {
 .stat-card-icon {
   font-size: 2rem;
   margin-bottom: 12px;
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
 }
 
 .stat-card-value {
@@ -401,8 +395,6 @@ input, select, textarea, button {
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 6px;
-  position: relative;
-  z-index: 2;
 }
 
 .stat-card.gold .stat-card-value { color: var(--accent); }
