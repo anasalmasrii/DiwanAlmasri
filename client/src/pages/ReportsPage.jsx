@@ -133,7 +133,7 @@ export default function ReportsPage() {
                   <td style={{ fontWeight: 600 }}>{m.full_name}</td>
                   <td>{m.national_id || '—'}</td>
                   <td>{m.phone_number || '—'}</td>
-                  <td>{m.join_date || '—'}</td>
+                  <td>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
                   <td>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>
                   <td>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
                   <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700 }}>
