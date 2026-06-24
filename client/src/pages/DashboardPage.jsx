@@ -61,7 +61,17 @@ export default function DashboardPage() {
           <label style={{ fontWeight: 'bold' }}>اختر الشهر:</label>
           <select 
             className="form-control" 
-            style={{ width: '150px' }}
+            style={{ 
+              width: '150px', 
+              backgroundColor: '#1a1f36', 
+              color: '#e2e8f0', 
+              border: '1px solid #2d3748',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              cursor: 'pointer',
+              outline: 'none',
+              fontFamily: 'inherit'
+            }}
             value={selectedMonth} 
             onChange={(e) => setSelectedMonth(e.target.value)}
           >
