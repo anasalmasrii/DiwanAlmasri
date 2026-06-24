@@ -85,19 +85,23 @@ export default function DashboardPage() {
 
       {/* بطاقات الإحصائيات */}
       <div className="stats-grid">
-        <StatCard
-          icon="🏦"
-          value={stats.totalTreasury}
-          label="إجمالي أموال الصندوق (كامل الإيرادات)"
-          color="green"
-          suffix="د.أ"
-        />
-        <StatCard
-          icon="👥"
-          value={stats.totalMembers}
-          label="إجمالي الأعضاء النشطين"
-          color="gold"
-        />
+        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="🏦"
+            value={stats.totalTreasury}
+            label="إجمالي أموال الصندوق (كامل الإيرادات)"
+            color="green"
+            suffix="د.أ"
+          />
+        </Link>
+        <Link to="/members" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="👥"
+            value={stats.totalMembers}
+            label="إجمالي الأعضاء النشطين"
+            color="gold"
+          />
+        </Link>
         <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
           <StatCard
             icon="💰"
@@ -107,44 +111,54 @@ export default function DashboardPage() {
             suffix="د.أ"
           />
         </Link>
-        <StatCard
-          icon="💵"
-          value={stats.monthlyRevenueSubscriptions}
-          label="إيرادات الاشتراكات"
-          color="blue"
-          suffix="د.أ"
-        />
-        <StatCard
-          icon="🎁"
-          value={stats.monthlyRevenueContributions}
-          label="إيرادات المساهمات"
-          color="gold"
-          suffix="د.أ"
-        />
-        <StatCard
-          icon="✅"
-          value={stats.paidSubscriptionsCount}
-          label={`المسددون للاشتراك (${monthName})`}
-          color="blue"
-        />
-        <StatCard
-          icon="✨"
-          value={stats.paidContributionsCount}
-          label="المسددون للمساهمات"
-          color="gold"
-        />
-        <StatCard
-          icon={stats.currentMonth === 'all' ? '⚠️' : (stats.isAfterDeadline ? '🚨' : '⏳')}
-          value={stats.unpaidCount}
-          label={
-            stats.currentMonth === 'all'
-              ? 'متخلفين عن السداد كلياً'
-              : (stats.isAfterDeadline
-                ? 'متخلفين عن السداد'
-                : 'لم يسددوا بعد')
-          }
-          color="red"
-        />
+        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="💵"
+            value={stats.monthlyRevenueSubscriptions}
+            label="إيرادات الاشتراكات"
+            color="blue"
+            suffix="د.أ"
+          />
+        </Link>
+        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="🎁"
+            value={stats.monthlyRevenueContributions}
+            label="إيرادات المساهمات"
+            color="gold"
+            suffix="د.أ"
+          />
+        </Link>
+        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="✅"
+            value={stats.paidSubscriptionsCount}
+            label={`المسددون للاشتراك (${monthName})`}
+            color="blue"
+          />
+        </Link>
+        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="✨"
+            value={stats.paidContributionsCount}
+            label="المسددون للمساهمات"
+            color="gold"
+          />
+        </Link>
+        <Link to="/defaulters" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon={stats.currentMonth === 'all' ? '⚠️' : (stats.isAfterDeadline ? '🚨' : '⏳')}
+            value={stats.unpaidCount}
+            label={
+              stats.currentMonth === 'all'
+                ? 'متخلفين عن السداد كلياً'
+                : (stats.isAfterDeadline
+                  ? 'متخلفين عن السداد'
+                  : 'لم يسددوا بعد')
+            }
+            color="red"
+          />
+        </Link>
       </div>
 
       {/* تنبيه الموعد النهائي */}
