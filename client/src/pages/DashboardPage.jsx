@@ -64,17 +64,37 @@ export default function DashboardPage() {
         <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
           <StatCard
             icon="💰"
-            value={stats.monthlyRevenue}
-            label={`إيرادات ${monthName}`}
+            value={stats.monthlyRevenueTotal}
+            label={`إجمالي إيرادات ${monthName}`}
             color="green"
             suffix="د.أ"
           />
         </Link>
         <StatCard
-          icon="✅"
-          value={stats.paidCount}
-          label={`المسددون في ${monthName}`}
+          icon="💵"
+          value={stats.monthlyRevenueSubscriptions}
+          label="إيرادات الاشتراكات"
           color="blue"
+          suffix="د.أ"
+        />
+        <StatCard
+          icon="🎁"
+          value={stats.monthlyRevenueContributions}
+          label="إيرادات المساهمات"
+          color="gold"
+          suffix="د.أ"
+        />
+        <StatCard
+          icon="✅"
+          value={stats.paidSubscriptionsCount}
+          label={`المسددون للاشتراك (${monthName})`}
+          color="blue"
+        />
+        <StatCard
+          icon="✨"
+          value={stats.paidContributionsCount}
+          label="المسددون للمساهمات"
+          color="gold"
         />
         <StatCard
           icon={stats.isAfterDeadline ? '🚨' : '⏳'}

@@ -29,19 +29,36 @@ router.get('/', async (req, res) => {
     );
     const totalMembers = totalResult ? parseInt(totalResult.count, 10) : 0;
 
-    // إجمالي المبالغ المحصلة هذا الشهر
-    const revenueResult = await db.get(
-      'SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE month = ? AND year = ?',
+    // إجمالي المبالغ المحصلة هذا الشهر (اشتراكات)
+    const revenueSubResult = await db.get(
+      "SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE month = ? AND year = ? AND payment_type = 'اشتراك'",
       [currentMonth, currentYear]
     );
-    const monthlyRevenue = revenueResult ? parseFloat(revenueResult.total) : 0;
+    const monthlyRevenueSubscriptions = revenueSubResult ? parseFloat(revenueSubResult.total) : 0;
+
+    // إجمالي المبالغ المحصلة هذا الشهر (مساهمات)
+    const revenueContribResult = await db.get(
+      "SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE month = ? AND year = ? AND payment_type = 'مساهمة'",
+      [currentMonth, currentYear]
+    );
+    const monthlyRevenueContributions = revenueContribResult ? parseFloat(revenueContribResult.total) : 0;
+
+    // إجمالي الإيرادات
+    const monthlyRevenueTotal = monthlyRevenueSubscriptions + monthlyRevenueContributions;
 
     // عدد الأعضاء الذين سددوا هذا الشهر (اشتراكات فقط)
     const paidResult = await db.get(
       "SELECT COUNT(DISTINCT member_id) as count FROM payments WHERE month = ? AND year = ? AND payment_type = 'اشتراك'",
       [currentMonth, currentYear]
     );
-    const paidCount = paidResult ? parseInt(paidResult.count, 10) : 0;
+    const paidSubscriptionsCount = paidResult ? parseInt(paidResult.count, 10) : 0;
+
+    // عدد الأعضاء الذين دفعوا مساهمات هذا الشهر
+    const paidContribResult = await db.get(
+      "SELECT COUNT(DISTINCT member_id) as count FROM payments WHERE month = ? AND year = ? AND payment_type = 'مساهمة'",
+      [currentMonth, currentYear]
+    );
+    const paidContributionsCount = paidContribResult ? parseInt(paidContribResult.count, 10) : 0;
 
     const unpaidResult = await db.get(`
       SELECT COUNT(*) as count FROM members m
@@ -55,8 +72,11 @@ router.get('/', async (req, res) => {
 
     res.json({
       totalMembers,
-      monthlyRevenue,
-      paidCount,
+      monthlyRevenueTotal,
+      monthlyRevenueSubscriptions,
+      monthlyRevenueContributions,
+      paidSubscriptionsCount,
+      paidContributionsCount,
       unpaidCount,
       isAfterDeadline,
       currentMonth,
