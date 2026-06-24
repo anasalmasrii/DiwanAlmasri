@@ -151,7 +151,7 @@ export default function DashboardPage() {
           <StatCard
             icon="✅"
             value={stats.paidSubscriptionsCount}
-            label={`المسددون للاشتراك (شهر ${stats.currentMonth})`}
+            label={stats.currentMonth === 'all' ? 'المسددون للاشتراك (جميع الأشهر)' : `المسددون للاشتراك (شهر ${stats.currentMonth})`}
             color="blue"
           />
         </Link>
