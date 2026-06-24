@@ -16,6 +16,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { path: '/members', icon: '👥', label: 'إدارة الأعضاء', perm: 'members' },
     { path: '/payments', icon: '💰', label: 'الاشتراكات والدفعات', perm: 'payments' },
     { path: '/defaulters', icon: '⚠️', label: 'المتخلفين عن السداد', perm: 'defaulters' },
+    { path: '/expenses', icon: '🛠️', label: 'مصاريف وصيانة الديوان', perm: 'expenses' },
   ];
 
   return (

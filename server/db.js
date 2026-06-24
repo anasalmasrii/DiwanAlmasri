@@ -82,13 +82,26 @@ export async function initDatabase() {
       )
     `);
 
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS expenses (
+        id SERIAL PRIMARY KEY,
+        amount REAL NOT NULL,
+        description TEXT NOT NULL,
+        expense_date DATE NOT NULL,
+        month INTEGER NOT NULL,
+        year INTEGER NOT NULL,
+        category VARCHAR(100) DEFAULT 'عام',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // التحقق من وجود المسؤول الرئيسي
     const { rows } = await pgPool.query("SELECT id FROM users WHERE username = 'admin'");
     if (rows.length === 0) {
       const hash = bcrypt.hashSync('admin123', 10);
       await pgPool.query(
         "INSERT INTO users (username, password_hash, full_name, role, permissions) VALUES ($1, $2, $3, $4, $5)",
-        ['admin', hash, 'المسؤول الرئيسي', 'super_admin', JSON.stringify({ dashboard: true, members: true, payments: true, defaulters: true })]
+        ['admin', hash, 'المسؤول الرئيسي', 'super_admin', JSON.stringify({ dashboard: true, members: true, payments: true, defaulters: true, expenses: true })]
       );
       console.log('✅ تم إنشاء المسؤول الرئيسي في PostgreSQL (admin / admin123)');
     } else {
@@ -151,6 +164,19 @@ export async function initDatabase() {
       notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    )
+  `);
+
+  sqliteDb.run(`
+    CREATE TABLE IF NOT EXISTS expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      amount REAL NOT NULL,
+      description TEXT NOT NULL,
+      expense_date DATE NOT NULL,
+      month INTEGER NOT NULL,
+      year INTEGER NOT NULL,
+      category TEXT DEFAULT 'عام',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 

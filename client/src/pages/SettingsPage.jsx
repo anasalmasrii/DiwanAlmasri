@@ -401,7 +401,7 @@ export default function SettingsPage() {
                         type="button" 
                         className="btn btn-sm" 
                         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: '0.8rem', padding: '4px 8px' }}
-                        onClick={() => setUserForm({ ...userForm, permissions: { dashboard: true, members: true, payments: true, defaulters: true } })}
+                        onClick={() => setUserForm({ ...userForm, permissions: { dashboard: true, members: true, payments: true, defaulters: true, expenses: true } })}
                       >
                         ✅ تحديد الكل
                       </button>
@@ -438,6 +438,14 @@ export default function SettingsPage() {
                           onChange={() => handlePermissionChange('defaulters')}
                         />
                         ⚠️ المتخلفين عن السداد
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={userForm.permissions.expenses || false}
+                          onChange={() => handlePermissionChange('expenses')}
+                        />
+                        🛠️ مصاريف وصيانة الديوان
                       </label>
                     </div>
                   </div>

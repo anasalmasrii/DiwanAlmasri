@@ -37,6 +37,10 @@ router.get('/', async (req, res) => {
     const treasuryResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM payments");
     const totalTreasury = treasuryResult ? parseFloat(treasuryResult.total) : 0;
 
+    // إجمالي المصاريف الكلية
+    const expensesResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM expenses");
+    const totalExpenses = expensesResult ? parseFloat(expensesResult.total) : 0;
+
     let monthlyRevenueSubscriptions = 0;
     let monthlyRevenueContributions = 0;
     let paidSubscriptionsCount = 0;
@@ -117,6 +121,8 @@ router.get('/', async (req, res) => {
       monthlyRevenueSubscriptions,
       monthlyRevenueContributions,
       totalTreasury,
+      totalExpenses,
+      netTreasury: totalTreasury - totalExpenses,
       paidSubscriptionsCount,
       paidContributionsCount,
       unpaidCount,
