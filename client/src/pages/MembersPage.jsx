@@ -318,7 +318,8 @@ export default function MembersPage() {
                   <th>رقم الهاتف</th>
                   <th>حالة السداد</th>
                   <th>الأشهر المتراكمة</th>
-                  <th>ما دفعه (د.أ)</th>
+                  <th>مجموع الاشتراكات</th>
+                  <th>مجموع المساهمات</th>
                   <th>الإجراءات</th>
                 </tr>
               </thead>
@@ -340,7 +341,8 @@ export default function MembersPage() {
                     <td data-label="رقم الهاتف" style={{ direction: 'ltr', textAlign: 'right' }}>{member.phone_number || '—'}</td>
                     <td data-label="حالة السداد">{getStatusBadge(member)}</td>
                     <td data-label="الأشهر المتراكمة"><span className={`payment-count ${member.months_owed > 0 ? 'badge-danger' : 'badge-success'}`} style={{ color: member.months_owed > 0 ? 'var(--danger)' : 'var(--success)' }}>{Math.max(0, member.months_owed)} أشهر</span></td>
-                    <td data-label="ما دفعه (د.أ)" style={{ fontWeight: 700, color: 'var(--success)' }}>{member.total_paid_amount || 0} د.أ</td>
+                    <td data-label="مجموع الاشتراكات" style={{ fontWeight: 700, color: 'var(--success)' }}>{member.total_subscriptions || 0} د.أ</td>
+                    <td data-label="مجموع المساهمات" style={{ fontWeight: 700, color: 'var(--accent)' }}>{member.total_contributions || 0} د.أ</td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
                         <button className="btn btn-secondary btn-sm" onClick={() => openPaymentModal(member)} title="إضافة دفعة">💰</button>

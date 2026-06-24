@@ -27,7 +27,8 @@ router.get('/', async (req, res) => {
   const baseQuery = `
     SELECT m.*,
       (SELECT COUNT(*) FROM payments WHERE member_id = m.id) as total_payments,
-      (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE member_id = m.id) as total_paid_amount,
+      (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE member_id = m.id AND payment_type = 'اشتراك') as total_subscriptions,
+      (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE member_id = m.id AND payment_type = 'مساهمة') as total_contributions,
       (
         (cast(strftime('%Y', 'now') as integer) - cast(strftime('%Y', m.join_date) as integer)) * 12 
         + (cast(strftime('%m', 'now') as integer) - cast(strftime('%m', m.join_date) as integer)) 
