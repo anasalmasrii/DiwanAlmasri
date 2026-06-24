@@ -1,0 +1,18 @@
+{
+  "short_name": "ديوان المصري",
+  "name": "نظام ديوان المصري لإدارة الاشتراكات",
+  "icons": [
+    {
+      "src": "DiwanAlmasri-logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0a0e1a",
+  "background_color": "#0a0e1a",
+  "dir": "rtl",
+  "lang": "ar"
+}
