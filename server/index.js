@@ -30,6 +30,17 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
 
+app.get('/api/clear-notes', async (req, res) => {
+  try {
+    const { getDb } = await import('./db.js');
+    const db = getDb();
+    await db.run("UPDATE payments SET notes = ''");
+    res.send('<h1>✅ تم مسح جميع الملاحظات من النظام بنجاح!</h1><p>يمكنك العودة للموقع الآن.</p>');
+  } catch (err) {
+    res.status(500).send('Error: ' + err.message);
+  }
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'ديوان المصري - الخادم يعمل بنجاح' });
 });
