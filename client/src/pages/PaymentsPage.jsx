@@ -306,7 +306,7 @@ export default function PaymentsPage() {
           </h3>
           {payments.length > 0 && (
             <div style={{ fontWeight: 'bold', color: 'var(--success)', background: 'var(--success-bg, rgba(16, 185, 129, 0.1))', padding: '6px 16px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-              المجموع: {totalAmount.toLocaleString('ar-JO')} د.أ
+              المجموع: {totalAmount.toLocaleString('en-US')} د.أ
             </div>
           )}
         </div>
@@ -358,10 +358,10 @@ export default function PaymentsPage() {
                         </span>
                       </td>
                       <td data-label="الاشتراك" style={{ fontWeight: 700, color: 'var(--success)' }}>
-                        {group.subscription ? `${group.subscription.amount.toLocaleString('ar-JO')} د.أ` : '—'}
+                        {group.subscription ? `${group.subscription.amount.toLocaleString('en-US')} د.أ` : '—'}
                       </td>
                       <td data-label="المساهمة" style={{ fontWeight: 700, color: (group.contribution && group.contribution.amount < 20) ? 'var(--danger)' : 'var(--warning, #f59e0b)' }}>
-                        {group.contribution ? `${group.contribution.amount.toLocaleString('ar-JO')} د.أ` : '—'}
+                        {group.contribution ? `${group.contribution.amount.toLocaleString('en-US')} د.أ` : '—'}
                       </td>
                       <td data-label="الحالة">
                         <span className={`badge ${statusClass}`}>{statusLabel}</span>

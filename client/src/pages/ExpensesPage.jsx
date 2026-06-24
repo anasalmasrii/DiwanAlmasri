@@ -210,7 +210,7 @@ export default function ExpensesPage() {
           </h3>
           {filtered.length > 0 && (
             <div style={{ fontWeight: 'bold', color: 'var(--danger)', background: 'rgba(239, 68, 68, 0.1)', padding: '6px 16px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              الإجمالي: {totalAmount.toLocaleString('ar-JO')} د.أ
+              الإجمالي: {totalAmount.toLocaleString('en-US')} د.أ
             </div>
           )}
         </div>
@@ -248,7 +248,7 @@ export default function ExpensesPage() {
                       <span className="badge badge-info">شهر {expense.month} ({expense.year})</span>
                     </td>
                     <td data-label="المبلغ" style={{ fontWeight: 700, color: 'var(--danger)' }}>
-                      {parseFloat(expense.amount).toLocaleString('ar-JO')} د.أ
+                      {parseFloat(expense.amount).toLocaleString('en-US')} د.أ
                     </td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
@@ -344,7 +344,7 @@ export default function ExpensesPage() {
             <div className="modal-body">
               <p>هل أنت متأكد من حذف المصروف:</p>
               <p style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1.1rem' }}>"{deleteConfirm.description}"</p>
-              <p style={{ color: 'var(--text-muted)' }}>المبلغ: {parseFloat(deleteConfirm.amount).toLocaleString('ar-JO')} د.أ</p>
+              <p style={{ color: 'var(--text-muted)' }}>المبلغ: {parseFloat(deleteConfirm.amount).toLocaleString('en-US')} د.أ</p>
             </div>
             <div className="modal-footer">
               <button className="btn btn-danger" onClick={handleDelete}>🗑️ نعم، احذف</button>

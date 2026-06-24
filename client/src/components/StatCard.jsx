@@ -38,7 +38,7 @@ export default function StatCard({ icon, value, label, color = 'gold', suffix = 
       <div className="stat-card-icon">{icon}</div>
       <div className="stat-card-value">
         {typeof value === 'number' && !isNaN(value)
-          ? displayValue.toLocaleString('ar-EG')
+          ? displayValue.toLocaleString('en-US')
           : value}
         {suffix && <span style={{ fontSize: '0.5em', marginRight: '4px' }}>{suffix}</span>}
       </div>
