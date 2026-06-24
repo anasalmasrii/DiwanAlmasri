@@ -395,7 +395,17 @@ export default function SettingsPage() {
 
                 {(!editingUser || editingUser.role !== 'super_admin') && (
                   <div className="form-group" style={{ marginTop: '16px' }}>
-                    <label className="form-label">الصلاحيات:</label>
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>الصلاحيات:</span>
+                      <button 
+                        type="button" 
+                        className="btn btn-sm" 
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: '0.8rem', padding: '4px 8px' }}
+                        onClick={() => setUserForm({ ...userForm, permissions: { dashboard: true, members: true, payments: true, defaulters: true } })}
+                      >
+                        ✅ تحديد الكل
+                      </button>
+                    </label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: 'var(--bg-glass)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                         <input
