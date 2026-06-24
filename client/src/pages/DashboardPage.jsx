@@ -77,7 +77,7 @@ export default function DashboardPage() {
           >
             <option value="all">جميع الأشهر</option>
             {arabicMonths.map((m, i) => (
-              <option key={i+1} value={i+1}>{m}</option>
+              <option key={i+1} value={i+1}>{i+1} - {m}</option>
             ))}
           </select>
         </div>
