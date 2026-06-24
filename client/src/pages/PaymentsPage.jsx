@@ -360,7 +360,7 @@ export default function PaymentsPage() {
                       <td data-label="الاشتراك" style={{ fontWeight: 700, color: 'var(--success)' }}>
                         {group.subscription ? `${group.subscription.amount.toLocaleString('ar-JO')} د.أ` : '—'}
                       </td>
-                      <td data-label="المساهمة" style={{ fontWeight: 700, color: 'var(--warning, #f59e0b)' }}>
+                      <td data-label="المساهمة" style={{ fontWeight: 700, color: (group.contribution && group.contribution.amount < 20) ? 'var(--danger)' : 'var(--warning, #f59e0b)' }}>
                         {group.contribution ? `${group.contribution.amount.toLocaleString('ar-JO')} د.أ` : '—'}
                       </td>
                       <td data-label="الحالة">
