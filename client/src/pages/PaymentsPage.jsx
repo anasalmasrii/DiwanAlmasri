@@ -301,7 +301,7 @@ export default function PaymentsPage() {
           <h3 className="card-title" style={{ margin: 0 }}>
             <span>📋</span>
             <span>
-              دفعات {arabicMonths[filterMonth - 1]} {filterYear} ({payments.length} دفعة)
+              دفعات {filterMonth ? `شهر ${filterMonth}` : 'جميع الأشهر'} {filterYear ? `لسنة ${filterYear}` : ''} ({payments.length} دفعة)
             </span>
           </h3>
           {payments.length > 0 && (
@@ -354,7 +354,7 @@ export default function PaymentsPage() {
                       <td data-label="اسم العضو" style={{ fontWeight: 600 }}>{group.member_name}</td>
                       <td data-label="الشهر">
                         <span className="badge badge-info">
-                          {arabicMonths[group.month - 1]} {group.year}
+                          شهر {group.month} ({group.year})
                         </span>
                       </td>
                       <td data-label="الاشتراك" style={{ fontWeight: 700, color: 'var(--success)' }}>
