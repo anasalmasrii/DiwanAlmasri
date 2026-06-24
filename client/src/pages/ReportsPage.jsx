@@ -526,19 +526,33 @@ export default function ReportsPage() {
           body * { visibility: hidden !important; }
           #printable-area, #printable-area * { visibility: visible !important; }
           #printable-area {
-            position: fixed !important;
-            top: 0; left: 0; right: 0;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
             padding: 20px !important;
             background: white !important;
             direction: rtl;
             font-family: 'Cairo', 'Arial', sans-serif;
+            font-size: 12px;
           }
-          .print-table th { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .report-summary-row { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; margin-bottom: 16px !important; }
+          .report-summary-box { flex: 1 !important; min-width: 100px !important; padding: 8px !important; border: 2px solid #e5e7eb !important; border-radius: 6px !important; background: white !important; text-align: center !important; }
+          .rsb-val { font-size: 1rem !important; font-weight: 800 !important; }
+          .rsb-label { font-size: 0.65rem !important; }
+          .print-table { font-size: 0.75rem !important; page-break-inside: auto; }
+          .print-table tr { page-break-inside: avoid; page-break-after: auto; }
+          .print-table th { background: #1e293b !important; color: white !important; padding: 6px 8px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .print-table td { padding: 5px 8px !important; }
           .print-table tbody tr:nth-child(even) { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .print-table .row-danger { background: #fff5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .report-summary-box.green { border-color: #10b981 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .report-summary-box.green .rsb-val { color: #10b981 !important; }
           .report-summary-box.red { border-color: #ef4444 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .report-summary-box.red .rsb-val { color: #ef4444 !important; }
           .report-summary-box.blue { border-color: #3b82f6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .report-summary-box.blue .rsb-val { color: #3b82f6 !important; }
         }
       `}</style>
     </div>
