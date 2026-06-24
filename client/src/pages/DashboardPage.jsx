@@ -15,16 +15,18 @@ export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [defaulters, setDefaulters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedMonth]);
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const [statsRes, defaultersRes] = await Promise.all([
-        apiFetch('/api/dashboard'),
-        apiFetch('/api/dashboard/defaulters'),
+        apiFetch(`/api/dashboard?month=${selectedMonth}`),
+        apiFetch(`/api/dashboard/defaulters?month=${selectedMonth}`),
       ]);
 
       const statsData = await statsRes.json();
@@ -49,10 +51,28 @@ export default function DashboardPage() {
 
   if (!stats) return null;
 
-  const monthName = arabicMonths[(stats.currentMonth || 1) - 1];
+  const monthName = stats.currentMonth === 'all' ? 'جميع الأشهر' : arabicMonths[(stats.currentMonth || 1) - 1];
 
   return (
     <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>لوحة المعلومات</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <label style={{ fontWeight: 'bold' }}>اختر الشهر:</label>
+          <select 
+            className="form-control" 
+            style={{ width: '150px' }}
+            value={selectedMonth} 
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="all">جميع الأشهر</option>
+            {arabicMonths.map((m, i) => (
+              <option key={i+1} value={i+1}>{m}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* بطاقات الإحصائيات */}
       <div className="stats-grid">
         <StatCard
@@ -104,26 +124,30 @@ export default function DashboardPage() {
           color="gold"
         />
         <StatCard
-          icon={stats.isAfterDeadline ? '🚨' : '⏳'}
+          icon={stats.currentMonth === 'all' ? '⚠️' : (stats.isAfterDeadline ? '🚨' : '⏳')}
           value={stats.unpaidCount}
           label={
-            stats.isAfterDeadline
-              ? 'متخلفين عن السداد'
-              : 'لم يسددوا بعد'
+            stats.currentMonth === 'all'
+              ? 'متخلفين عن السداد كلياً'
+              : (stats.isAfterDeadline
+                ? 'متخلفين عن السداد'
+                : 'لم يسددوا بعد')
           }
           color="red"
         />
       </div>
 
       {/* تنبيه الموعد النهائي */}
-      <div className={`deadline-banner ${stats.isAfterDeadline ? 'after' : 'before'}`}>
-        <span className="deadline-icon">{stats.isAfterDeadline ? '🔴' : '🟡'}</span>
-        <span>
-          {stats.isAfterDeadline
-            ? `انتهى الموعد النهائي للسداد (يوم 25 من ${monthName}). الأعضاء غير المسددين يُعتبرون متخلفين.`
-            : `الموعد النهائي للسداد: يوم 25 من ${monthName}. لا يزال هناك وقت للسداد.`}
-        </span>
-      </div>
+      {stats.currentMonth !== 'all' && (
+        <div className={`deadline-banner ${stats.isAfterDeadline ? 'after' : 'before'}`}>
+          <span className="deadline-icon">{stats.isAfterDeadline ? '🔴' : '🟡'}</span>
+          <span>
+            {stats.isAfterDeadline
+              ? `انتهى الموعد النهائي للسداد (يوم 25 من ${monthName}). الأعضاء غير المسددين يُعتبرون متخلفين.`
+              : `الموعد النهائي للسداد: يوم 25 من ${monthName}. لا يزال هناك وقت للسداد.`}
+          </span>
+        </div>
+      )}
 
       {/* قائمة مختصرة للمتخلفين */}
       <div className="card">
@@ -131,9 +155,12 @@ export default function DashboardPage() {
           <h2 className="card-title">
             <span>⚠️</span>
             <span>
-              {stats.isAfterDeadline
-                ? `المتخلفين عن سداد ${monthName}`
-                : `لم يسددوا بعد - ${monthName}`}
+              {stats.currentMonth === 'all'
+                ? 'لم يسددوا أي اشتراك إطلاقاً'
+                : (stats.isAfterDeadline
+                  ? `المتخلفين عن سداد ${monthName}`
+                  : `لم يسددوا بعد - ${monthName}`)
+              }
             </span>
           </h2>
           <Link to="/defaulters" className="btn btn-secondary btn-sm">
