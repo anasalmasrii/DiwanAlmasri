@@ -283,7 +283,7 @@ export default function PaymentsPage() {
                 <span className="search-icon" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-input"
                   style={{ paddingRight: '36px' }}
                   placeholder="ابحث بالاسم أو الملاحظات..."
                   value={searchQuery}
