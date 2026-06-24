@@ -138,22 +138,6 @@ router.put('/:id', async (req, res) => {
 });
 
 /**
- * DELETE /api/members/all
- * حذف جميع الأعضاء
- */
-router.delete('/all', async (req, res) => {
-  const db = getDb();
-  try {
-    await db.run('DELETE FROM payments');
-    await db.run('DELETE FROM members');
-    res.json({ message: 'تم حذف جميع الأعضاء بنجاح' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'خطأ داخلي' });
-  }
-});
-
-/**
  * DELETE /api/members/:id
  */
 router.delete('/:id', async (req, res) => {

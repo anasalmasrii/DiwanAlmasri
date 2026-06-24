@@ -178,23 +178,6 @@ export default function MembersPage() {
     }
   };
 
-  const handleDeleteAll = async () => {
-    if (window.confirm('⚠️ تحذير: هل أنت متأكد من أنك تريد حذف جميع الأعضاء وجميع دفعاتهم بشكل نهائي؟ هذا الإجراء لا يمكن التراجع عنه.')) {
-      try {
-        const response = await apiFetch('/api/members/all', {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) throw new Error('فشل حذف الأعضاء');
-        
-        loadMembers();
-        showToast('تم حذف جميع الأعضاء بنجاح');
-      } catch (err) {
-        console.error('Delete all error:', err);
-        showToast('حدث خطأ أثناء محاولة حذف جميع الأعضاء.', 'error');
-      }
-    }
-  };
 
   const getStatusBadge = (member) => {
     if (member.payment_status === 'paid') {
@@ -298,9 +281,7 @@ export default function MembersPage() {
           <p className="page-description">إضافة وتعديل وحذف أعضاء الديوان</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-danger" onClick={handleDeleteAll}>
-            🗑️ حذف جميع الأعضاء
-          </button>
+
           <button id="import-excel-btn" className="btn btn-secondary" onClick={() => setShowImportModal(true)}>
             📥 استيراد من Excel
           </button>
