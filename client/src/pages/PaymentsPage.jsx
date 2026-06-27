@@ -4,7 +4,7 @@
  * تسجيل الدفعات الشهرية وعرض السجل
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
 import { arabicMonths } from '../components/Header';
@@ -45,6 +45,18 @@ export default function PaymentsPage() {
     notes: '',
   });
   const [memberSearch, setMemberSearch] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -440,31 +452,52 @@ export default function PaymentsPage() {
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 {formError && <div className="login-error">⚠️ {formError}</div>}
-                <div className="form-group" style={{ position: 'relative' }}>
+                <div className="form-group" style={{ position: 'relative' }} ref={dropdownRef}>
                   <label className="form-label">العضو</label>
                   <input
-                    list="members-datalist"
+                    type="text"
                     className="form-input"
                     placeholder="-- ابحث أو اختر العضو --"
                     value={memberSearch}
+                    onFocus={() => setShowDropdown(true)}
                     onChange={(e) => {
                       const val = e.target.value;
                       setMemberSearch(val);
-                      const found = members.find(m => m.full_name === val);
-                      if (found) {
-                        setForm({ ...form, member_id: found.id });
-                      } else {
-                        setForm({ ...form, member_id: '' });
-                      }
+                      setShowDropdown(true);
+                      if (!val) setForm({ ...form, member_id: '' });
                     }}
                     disabled={!!editingPayment}
                     style={{ width: '100%' }}
                   />
-                  <datalist id="members-datalist">
-                    {members.map((m) => (
-                      <option key={m.id} value={m.full_name} />
-                    ))}
-                  </datalist>
+                  {showDropdown && !editingPayment && (
+                    <ul style={{
+                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000,
+                      background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px',
+                      maxHeight: '200px', overflowY: 'auto', listStyle: 'none', padding: 0, margin: '4px 0 0 0',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', textAlign: 'right'
+                    }}>
+                      {members.filter(m => m.full_name.includes(memberSearch)).length === 0 ? (
+                        <li style={{ padding: '8px 12px', color: '#6b7280', fontSize: '0.9rem' }}>لا توجد نتائج</li>
+                      ) : (
+                        members.filter(m => m.full_name.includes(memberSearch)).map(m => (
+                          <li
+                            key={m.id}
+                            style={{ padding: '8px 12px', cursor: 'pointer', fontSize: '0.9rem', borderBottom: '1px solid #f3f4f6' }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setMemberSearch(m.full_name);
+                              setForm({ ...form, member_id: m.id });
+                              setShowDropdown(false);
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = '#f9fafb'}
+                            onMouseLeave={(e) => e.target.style.background = 'white'}
+                          >
+                            {m.full_name}
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  )}
                   {form.member_id && (() => {
                     const selectedMember = members.find(m => m.id === parseInt(form.member_id));
                     if (selectedMember && selectedMember.months_owed > 0) {
