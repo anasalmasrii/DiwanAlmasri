@@ -52,10 +52,10 @@ router.get('/', authenticateToken, async (req, res) => {
     const db = getDb();
     let requests;
     if (db.isPg) {
-      const { rows } = await db.query("SELECT * FROM join_requests WHERE status = 'pending' ORDER BY id DESC");
+      const { rows } = await db.query("SELECT * FROM join_requests WHERE status != 'rejected' ORDER BY id DESC");
       requests = rows;
     } else {
-      requests = await db.all("SELECT * FROM join_requests WHERE status = 'pending' ORDER BY id DESC");
+      requests = await db.all("SELECT * FROM join_requests WHERE status != 'rejected' ORDER BY id DESC");
     }
     res.json(requests);
   } catch (err) {
@@ -63,8 +63,27 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// 3. الموافقة على الطلب (تحويله إلى عضو نشط)
-router.post('/:id/approve', authenticateToken, async (req, res) => {
+// 3. الموافقة كمنتسب (تغيير الحالة إلى affiliate)
+router.post('/:id/approve-affiliate', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const db = getDb();
+    if (db.isPg) {
+      await db.query("UPDATE join_requests SET status = 'affiliate' WHERE id = $1", [id]);
+    } else {
+      await db.run("UPDATE join_requests SET status = 'affiliate' WHERE id = ?", [id]);
+      const m = await import('../db.js');
+      m.saveDatabase();
+    }
+    res.json({ message: 'تم تحويل الطلب إلى منتسب بنجاح' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'حدث خطأ أثناء الموافقة' });
+  }
+});
+
+// 4. التحقق من وجود تطابق في النظام الرسمي
+router.get('/:id/check-match', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
     const db = getDb();
@@ -73,42 +92,89 @@ router.post('/:id/approve', authenticateToken, async (req, res) => {
       const { rows } = await db.query('SELECT * FROM join_requests WHERE id = $1', [id]);
       request = rows[0];
     } else {
-      request = db.get('SELECT * FROM join_requests WHERE id = ?', [id]);
+      request = await db.get('SELECT * FROM join_requests WHERE id = ?', [id]);
     }
 
-    if (!request) {
-      return res.status(404).json({ error: 'الطلب غير موجود' });
-    }
+    if (!request) return res.status(404).json({ error: 'الطلب غير موجود' });
 
+    let match;
     if (db.isPg) {
-      await db.query('BEGIN');
-      await db.query(
-        'INSERT INTO members (full_name, national_id, date_of_birth, phone_number, qualification) VALUES ($1, $2, $3, $4, $5)',
-        [request.full_name, request.national_id, request.date_of_birth, request.phone_number, request.qualification]
-      );
-      await db.query("UPDATE join_requests SET status = 'approved' WHERE id = $1", [id]);
-      await db.query('COMMIT');
+      const { rows } = await db.query('SELECT * FROM members WHERE national_id = $1 OR full_name = $2', [request.national_id, request.full_name]);
+      match = rows[0];
     } else {
-      db.exec('BEGIN TRANSACTION');
-      db.run(
-        'INSERT INTO members (full_name, national_id, date_of_birth, phone_number, qualification) VALUES (?, ?, ?, ?, ?)',
-        [request.full_name, request.national_id, request.date_of_birth, request.phone_number, request.qualification]
-      );
-      db.run("UPDATE join_requests SET status = 'approved' WHERE id = ?", [id]);
-      db.exec('COMMIT');
-      import('../db.js').then(m => m.saveDatabase());
+      match = await db.get('SELECT * FROM members WHERE national_id = ? OR full_name = ?', [request.national_id, request.full_name]);
     }
 
-    res.json({ message: 'تمت الموافقة على الطلب بنجاح وتم إضافة العضو' });
+    res.json({ match: match || null, request });
   } catch (err) {
     console.error(err);
-    if (getDb().isPg) await getDb().query('ROLLBACK');
-    else getDb().exec('ROLLBACK');
-    res.status(500).json({ error: 'حدث خطأ أثناء الموافقة' });
+    res.status(500).json({ error: 'حدث خطأ أثناء البحث عن تطابق' });
   }
 });
 
-// 4. رفض الطلب (أو حذفه)
+// 5. دمج البيانات (أو إضافة كعضو جديد)
+router.post('/:id/merge', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { member_id } = req.body; // null if new member
+  try {
+    const db = getDb();
+    let request;
+    if (db.isPg) {
+      const { rows } = await db.query('SELECT * FROM join_requests WHERE id = $1', [id]);
+      request = rows[0];
+    } else {
+      request = await db.get('SELECT * FROM join_requests WHERE id = ?', [id]);
+    }
+
+    if (!request) return res.status(404).json({ error: 'الطلب غير موجود' });
+
+    if (db.isPg) {
+      await db.query('BEGIN');
+      if (member_id) {
+        // Update existing member
+        await db.query(
+          'UPDATE members SET national_id = COALESCE($1, national_id), date_of_birth = COALESCE($2, date_of_birth), phone_number = COALESCE($3, phone_number), qualification = COALESCE($4, qualification) WHERE id = $5',
+          [request.national_id, request.date_of_birth, request.phone_number, request.qualification, member_id]
+        );
+      } else {
+        // Create new member
+        await db.query(
+          'INSERT INTO members (full_name, national_id, date_of_birth, phone_number, qualification) VALUES ($1, $2, $3, $4, $5)',
+          [request.full_name, request.national_id, request.date_of_birth, request.phone_number, request.qualification]
+        );
+      }
+      await db.query("UPDATE join_requests SET status = 'merged' WHERE id = $1", [id]);
+      await db.query('COMMIT');
+    } else {
+      try {
+        if (member_id) {
+          await db.run(
+            'UPDATE members SET national_id = COALESCE(?, national_id), date_of_birth = COALESCE(?, date_of_birth), phone_number = COALESCE(?, phone_number), qualification = COALESCE(?, qualification) WHERE id = ?',
+            [request.national_id, request.date_of_birth, request.phone_number, request.qualification, member_id]
+          );
+        } else {
+          await db.run(
+            'INSERT INTO members (full_name, national_id, date_of_birth, phone_number, qualification) VALUES (?, ?, ?, ?, ?)',
+            [request.full_name, request.national_id, request.date_of_birth, request.phone_number, request.qualification]
+          );
+        }
+        await db.run("UPDATE join_requests SET status = 'merged' WHERE id = ?", [id]);
+        const m = await import('../db.js');
+        m.saveDatabase();
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    res.json({ message: member_id ? 'تم تحديث بيانات العضو بنجاح' : 'تم إضافة العضو الجديد بنجاح' });
+  } catch (err) {
+    console.error(err);
+    if (getDb().isPg) await getDb().query('ROLLBACK');
+    res.status(500).json({ error: 'حدث خطأ أثناء الدمج' });
+  }
+});
+
+// 6. رفض الطلب (أو حذفه)
 router.delete('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
@@ -120,9 +186,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       const m = await import('../db.js');
       m.saveDatabase();
     }
-    res.json({ message: 'تم رفض الطلب بنجاح' });
+    res.json({ message: 'تم الحذف بنجاح' });
   } catch (err) {
-    res.status(500).json({ error: 'حدث خطأ أثناء الرفض' });
+    res.status(500).json({ error: 'حدث خطأ أثناء الحذف' });
   }
 });
 
