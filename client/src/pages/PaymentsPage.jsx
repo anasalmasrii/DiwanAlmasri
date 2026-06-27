@@ -361,7 +361,7 @@ export default function PaymentsPage() {
                     statusClass = 'badge-active';
                   } else if (group.contribution) {
                     statusLabel = 'مساهمة فقط';
-                    statusClass = 'badge-warning';
+                    statusClass = 'badge-success';
                   }
 
                   return (
@@ -376,7 +376,7 @@ export default function PaymentsPage() {
                       <td data-label="الاشتراك" style={{ fontWeight: 700, color: 'var(--success)' }}>
                         {group.subscription ? `${group.subscription.amount.toLocaleString('en-US')} د.أ` : '—'}
                       </td>
-                      <td data-label="المساهمة" style={{ fontWeight: 700, color: (group.contribution && group.contribution.amount < 20) ? 'var(--danger)' : 'var(--warning, #f59e0b)' }}>
+                      <td data-label="المساهمة" style={{ fontWeight: 700, color: (group.contribution && group.contribution.amount < 20) ? 'var(--danger)' : 'var(--success, #10b981)' }}>
                         {group.contribution ? `${group.contribution.amount.toLocaleString('en-US')} د.أ` : '—'}
                       </td>
                       <td data-label="الحالة">

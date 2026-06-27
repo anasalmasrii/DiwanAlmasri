@@ -180,8 +180,8 @@ export default function ReportsPage() {
               <div className="rsb-val">{totalSub.toLocaleString('en-US')} د.أ</div>
               <div className="rsb-label">إجمالي الاشتراكات</div>
             </div>
-            <div className="report-summary-box" style={{ borderColor: '#f59e0b' }}>
-              <div className="rsb-val" style={{ color: '#f59e0b' }}>{totalCon.toLocaleString('en-US')} د.أ</div>
+            <div className="report-summary-box" style={{ borderColor: '#10b981' }}>
+              <div className="rsb-val" style={{ color: '#10b981' }}>{totalCon.toLocaleString('en-US')} د.أ</div>
               <div className="rsb-label">إجمالي المساهمات</div>
             </div>
             <div className="report-summary-box blue">
@@ -210,7 +210,7 @@ export default function ReportsPage() {
                   <td style={{ color: '#10b981', fontWeight: 700 }}>
                     {row.subscription ? `${row.subscription.amount.toLocaleString('en-US')} د.أ` : '—'}
                   </td>
-                  <td style={{ color: '#f59e0b', fontWeight: 700 }}>
+                  <td style={{ color: '#10b981', fontWeight: 700 }}>
                     {row.contribution ? `${row.contribution.amount.toLocaleString('en-US')} د.أ` : '—'}
                   </td>
                   <td>{(row.subscription?.payment_date || row.contribution?.payment_date || '—').split('T')[0]}</td>
@@ -286,8 +286,8 @@ export default function ReportsPage() {
               <div className="rsb-val">{(dash?.monthlyRevenueSubscriptions || 0).toLocaleString('en-US')} د.أ</div>
               <div className="rsb-label">إيرادات الاشتراكات (الشهر)</div>
             </div>
-            <div className="report-summary-box" style={{ borderColor: '#f59e0b' }}>
-              <div className="rsb-val" style={{ color: '#f59e0b' }}>{(dash?.monthlyRevenueContributions || 0).toLocaleString('en-US')} د.أ</div>
+            <div className="report-summary-box" style={{ borderColor: '#10b981' }}>
+              <div className="rsb-val" style={{ color: '#10b981' }}>{(dash?.monthlyRevenueContributions || 0).toLocaleString('en-US')} د.أ</div>
               <div className="rsb-label">إيرادات المساهمات (الشهر)</div>
             </div>
             <div className="report-summary-box red">
