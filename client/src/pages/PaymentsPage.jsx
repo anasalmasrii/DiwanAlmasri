@@ -504,7 +504,7 @@ export default function PaymentsPage() {
                       return (
                         <div style={{ marginTop: '10px', padding: '12px', background: 'var(--danger-subtle, #ffebee)', color: 'var(--danger, #d32f2f)', borderRadius: 'var(--radius-sm, 6px)', fontSize: '0.9rem', border: '1px solid currentColor' }}>
                           <strong>⚠️ متأخرات:</strong> العضو متأخر لمدة <strong>{selectedMember.months_owed} أشهر</strong><br/>
-                          (القيمة المطلوبة: <strong>{selectedMember.months_owed * 10} د.أ</strong>)
+                          (القيمة المطلوبة: <strong>{selectedMember.months_owed * 3} د.أ</strong>)
                         </div>
                       );
                     } else if (selectedMember && selectedMember.months_owed <= 0) {
