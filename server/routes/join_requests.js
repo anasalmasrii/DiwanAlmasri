@@ -82,6 +82,20 @@ router.post('/:id/approve-affiliate', authenticateToken, async (req, res) => {
   }
 });
 
+// دالة مساعدة لتوحيد الأسماء العربية لتسهيل المطابقة
+function normalizeArabicName(name) {
+  if (!name) return '';
+  return name
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/عبدالرحمان/g, 'عبدالرحمن')
+    .replace(/عبد الرحمان/g, 'عبدالرحمن')
+    .replace(/عبد الرحمن/g, 'عبدالرحمن')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // 4. التحقق من وجود تطابق في النظام الرسمي
 router.get('/:id/check-match', authenticateToken, async (req, res) => {
   const { id } = req.params;
@@ -97,13 +111,31 @@ router.get('/:id/check-match', authenticateToken, async (req, res) => {
 
     if (!request) return res.status(404).json({ error: 'الطلب غير موجود' });
 
-    let match;
+    let match = null;
+    const reqNationalId = request.national_id ? request.national_id.trim() : '';
+    const normalizedReqName = normalizeArabicName(request.full_name);
+
+    // جلب كل الأعضاء للمقارنة الذكية برمجياً
+    let allMembers = [];
     if (db.isPg) {
-      const { rows } = await db.query('SELECT * FROM members WHERE national_id = $1 OR full_name = $2', [request.national_id, request.full_name]);
-      match = rows[0];
+      const { rows } = await db.query('SELECT * FROM members');
+      allMembers = rows;
     } else {
-      match = await db.get('SELECT * FROM members WHERE national_id = ? OR full_name = ?', [request.national_id, request.full_name]);
+      allMembers = await db.all('SELECT * FROM members');
     }
+
+    // البحث في الأعضاء
+    match = allMembers.find(m => {
+      // 1. التطابق بالرقم الوطني إذا كان موجوداً
+      if (reqNationalId && m.national_id && m.national_id.trim() === reqNationalId) {
+        return true;
+      }
+      // 2. التطابق بالاسم بعد إزالة الفروقات (الهمزات، الهاء، التاء المربوطة...)
+      if (normalizeArabicName(m.full_name) === normalizedReqName) {
+        return true;
+      }
+      return false;
+    });
 
     res.json({ match: match || null, request });
   } catch (err) {
