@@ -14,6 +14,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const navItems = [
     { path: '/dashboard', icon: '📊', label: 'لوحة المعلومات', perm: 'dashboard' },
     { path: '/members', icon: '👥', label: 'إدارة الأعضاء', perm: 'members' },
+    { path: '/join-requests', icon: '📨', label: 'طلبات الانضمام', perm: 'members' },
     { path: '/payments', icon: '💰', label: 'الاشتراكات والدفعات', perm: 'payments' },
     { path: '/defaulters', icon: '⚠️', label: 'المتخلفين عن السداد', perm: 'defaulters' },
     { path: '/expenses', icon: '🛠️', label: 'مصاريف وصيانة الديوان', perm: 'expenses' },

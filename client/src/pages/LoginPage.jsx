@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
@@ -92,9 +92,17 @@ export default function LoginPage() {
             type="submit"
             className="btn btn-primary"
             disabled={loading}
+            style={{ width: '100%', marginBottom: '15px' }}
           >
             {loading ? '⏳ جاري الدخول...' : '🔐 تسجيل الدخول'}
           </button>
+
+          <div style={{ textAlign: 'center', marginTop: '10px' }}>
+            <span style={{ color: 'var(--text-muted)' }}>عضو جديد؟ </span>
+            <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 'bold', textDecoration: 'none' }}>
+              انقر هنا لتعبئة استبيان الانضمام
+            </Link>
+          </div>
         </form>
       </div>
     </div>

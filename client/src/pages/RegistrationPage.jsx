@@ -1,0 +1,155 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+
+export default function RegistrationPage() {
+  const [form, setForm] = useState({
+    full_name: '',
+    national_id: '',
+    phone_number: '',
+    date_of_birth: '',
+    qualification: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await fetch('/api/join-requests/public/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setError(data.error || 'حدث خطأ أثناء إرسال الطلب');
+      } else {
+        setSuccess(data.message || 'تم إرسال طلبك بنجاح');
+        setForm({
+          full_name: '',
+          national_id: '',
+          phone_number: '',
+          date_of_birth: '',
+          qualification: ''
+        });
+      }
+    } catch (err) {
+      setError('تعذر الاتصال بالخادم. يرجى المحاولة لاحقاً.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-container" style={{ padding: '20px' }}>
+      <div className="login-card" style={{ maxWidth: '500px', width: '100%', margin: '40px auto' }}>
+        <div className="login-header">
+          <div className="login-logo">
+            <span>✨</span> ديوان المصري
+          </div>
+          <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>استبيان طلب انضمام للديوان</p>
+        </div>
+
+        {success ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '20px' }}>✅</div>
+            <h2 style={{ color: 'var(--success)', marginBottom: '10px' }}>تم الاستلام!</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>
+              تم استلام بياناتك بنجاح. سيتم مراجعة الطلب من قبل الإدارة قريباً.
+            </p>
+            <Link to="/login" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+              العودة للصفحة الرئيسية
+            </Link>
+          </div>
+        ) : (
+          <form className="login-form" onSubmit={handleSubmit}>
+            {error && <div className="login-error">⚠️ {error}</div>}
+
+            <div className="form-group">
+              <label className="form-label">الاسم الرباعي *</label>
+              <input
+                type="text"
+                name="full_name"
+                className="form-input"
+                placeholder="أدخل اسمك الرباعي"
+                value={form.full_name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">الرقم الوطني</label>
+              <input
+                type="text"
+                name="national_id"
+                className="form-input"
+                placeholder="أدخل الرقم الوطني"
+                value={form.national_id}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">رقم الهاتف *</label>
+              <input
+                type="text"
+                name="phone_number"
+                className="form-input"
+                placeholder="مثال: 0791234567"
+                value={form.phone_number}
+                onChange={handleChange}
+                required
+                style={{ direction: 'ltr', textAlign: 'right' }}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">تاريخ الميلاد</label>
+              <input
+                type="date"
+                name="date_of_birth"
+                className="form-input"
+                value={form.date_of_birth}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">المؤهل العلمي</label>
+              <input
+                type="text"
+                name="qualification"
+                className="form-input"
+                placeholder="مثال: بكالوريوس هندسة"
+                value={form.qualification}
+                onChange={handleChange}
+              />
+            </div>
+
+            <button type="submit" className="login-button" disabled={loading} style={{ marginTop: '10px' }}>
+              {loading ? 'جاري الإرسال...' : 'إرسال طلب الانضمام'}
+            </button>
+
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <Link to="/login" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: '0.9rem' }}>
+                العودة لتسجيل الدخول
+              </Link>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}

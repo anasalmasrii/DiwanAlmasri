@@ -8,6 +8,8 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import RegistrationPage from './pages/RegistrationPage';
+import JoinRequestsPage from './pages/JoinRequestsPage';
 import MembersPage from './pages/MembersPage';
 import PaymentsPage from './pages/PaymentsPage';
 import DefaultersPage from './pages/DefaultersPage';
@@ -61,6 +63,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegistrationPage />} />
       <Route
         path="/dashboard"
         element={
@@ -114,6 +117,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <AppLayout><ReportsPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/join-requests"
+        element={
+          <ProtectedRoute>
+            <AppLayout><JoinRequestsPage /></AppLayout>
           </ProtectedRoute>
         }
       />

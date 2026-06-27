@@ -69,6 +69,10 @@ export async function initDatabase() {
     `);
 
     await pgPool.query(`
+      ALTER TABLE members ADD COLUMN IF NOT EXISTS qualification VARCHAR(255);
+    `);
+
+    await pgPool.query(`
       CREATE TABLE IF NOT EXISTS payments (
         id SERIAL PRIMARY KEY,
         member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
@@ -91,6 +95,20 @@ export async function initDatabase() {
         month INTEGER NOT NULL,
         year INTEGER NOT NULL,
         category VARCHAR(100) DEFAULT 'عام',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS join_requests (
+        id SERIAL PRIMARY KEY,
+        full_name VARCHAR(255) NOT NULL,
+        national_id VARCHAR(50),
+        date_of_birth DATE,
+        phone_number VARCHAR(50),
+        qualification VARCHAR(255),
+        request_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        status VARCHAR(50) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -180,6 +198,20 @@ export async function initDatabase() {
     )
   `);
 
+  sqliteDb.run(`
+    CREATE TABLE IF NOT EXISTS join_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name TEXT NOT NULL,
+      national_id TEXT,
+      date_of_birth DATE,
+      phone_number TEXT,
+      qualification TEXT,
+      request_date DATE NOT NULL DEFAULT (date('now')),
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   runMigrations();
 
   const existingAdmin = getDbSync().get("SELECT id FROM users WHERE username = 'admin'");
@@ -210,6 +242,7 @@ function runMigrations() {
   if (!memberCols.includes('national_id')) { try { sqliteDb.run("ALTER TABLE members ADD COLUMN national_id TEXT"); } catch(e) {} }
   if (!memberCols.includes('date_of_birth')) { try { sqliteDb.run("ALTER TABLE members ADD COLUMN date_of_birth DATE"); } catch(e) {} }
   if (!memberCols.includes('phone_number')) { try { sqliteDb.run("ALTER TABLE members ADD COLUMN phone_number TEXT"); } catch(e) {} }
+  if (!memberCols.includes('qualification')) { try { sqliteDb.run("ALTER TABLE members ADD COLUMN qualification TEXT"); } catch(e) {} }
 
   const paymentCols = getColumnNames('payments');
   if (!paymentCols.includes('payment_type')) { try { sqliteDb.run("ALTER TABLE payments ADD COLUMN payment_type TEXT DEFAULT 'اشتراك'"); } catch(e) {} }
