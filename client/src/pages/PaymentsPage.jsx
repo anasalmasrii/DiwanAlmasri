@@ -44,6 +44,7 @@ export default function PaymentsPage() {
     payment_type: 'اشتراك',
     notes: '',
   });
+  const [memberSearch, setMemberSearch] = useState('');
 
   useEffect(() => {
     loadData();
@@ -89,6 +90,7 @@ export default function PaymentsPage() {
       notes: '',
     });
     setFormError('');
+    setMemberSearch('');
     setEditingPayment(null);
     setShowModal(true);
   };
@@ -104,6 +106,8 @@ export default function PaymentsPage() {
       notes: payment.notes || '',
     });
     setFormError('');
+    const member = members.find(m => m.id === payment.member_id);
+    setMemberSearch(member ? member.full_name : '');
     setEditingPayment(payment);
     setShowModal(true);
   };
@@ -436,22 +440,33 @@ export default function PaymentsPage() {
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 {formError && <div className="login-error">⚠️ {formError}</div>}
-                <div className="form-group">
+                <div className="form-group" style={{ position: 'relative' }}>
                   <label className="form-label">العضو</label>
-                  <select
-                    className="form-select"
-                    value={form.member_id}
-                    onChange={(e) => setForm({ ...form, member_id: e.target.value })}
+                  <input
+                    list="members-datalist"
+                    className="form-input"
+                    placeholder="-- ابحث أو اختر العضو --"
+                    value={memberSearch}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setMemberSearch(val);
+                      const found = members.find(m => m.full_name === val);
+                      if (found) {
+                        setForm({ ...form, member_id: found.id });
+                      } else {
+                        setForm({ ...form, member_id: '' });
+                      }
+                    }}
                     disabled={!!editingPayment}
-                  >
-                    <option value="">-- اختر العضو --</option>
+                    style={{ width: '100%' }}
+                  />
+                  <datalist id="members-datalist">
                     {members.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.full_name}
-                      </option>
+                      <option key={m.id} value={m.full_name} />
                     ))}
-                  </select>
-                  {form.member_id && (() => {
+                  </datalist>
+                </div>
+                {form.member_id && (() => {
                     const selectedMember = members.find(m => m.id === parseInt(form.member_id));
                     if (selectedMember && selectedMember.months_owed > 0) {
                       return (
