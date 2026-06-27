@@ -31,11 +31,12 @@ router.post('/public/register', async (req, res) => {
         [full_name, national_id || null, date_of_birth || null, phone_number, qualification || null]
       );
     } else {
-      db.run(
+      await db.run(
         'INSERT INTO join_requests (full_name, national_id, date_of_birth, phone_number, qualification) VALUES (?, ?, ?, ?, ?)',
         [full_name, national_id || null, date_of_birth || null, phone_number, qualification || null]
       );
-      import('../db.js').then(m => m.saveDatabase());
+      const m = await import('../db.js');
+      m.saveDatabase();
     }
 
     res.status(201).json({ message: 'تم استلام طلب الانضمام بنجاح. سيتم مراجعته قريباً.' });
@@ -54,7 +55,7 @@ router.get('/', authenticateToken, async (req, res) => {
       const { rows } = await db.query("SELECT * FROM join_requests WHERE status = 'pending' ORDER BY id DESC");
       requests = rows;
     } else {
-      requests = db.all("SELECT * FROM join_requests WHERE status = 'pending' ORDER BY id DESC");
+      requests = await db.all("SELECT * FROM join_requests WHERE status = 'pending' ORDER BY id DESC");
     }
     res.json(requests);
   } catch (err) {
@@ -115,8 +116,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     if (db.isPg) {
       await db.query("UPDATE join_requests SET status = 'rejected' WHERE id = $1", [id]);
     } else {
-      db.run("UPDATE join_requests SET status = 'rejected' WHERE id = ?", [id]);
-      import('../db.js').then(m => m.saveDatabase());
+      await db.run("UPDATE join_requests SET status = 'rejected' WHERE id = ?", [id]);
+      const m = await import('../db.js');
+      m.saveDatabase();
     }
     res.json({ message: 'تم رفض الطلب بنجاح' });
   } catch (err) {
