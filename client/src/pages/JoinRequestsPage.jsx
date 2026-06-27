@@ -29,27 +29,8 @@ export default function JoinRequestsPage() {
     }
   };
 
-  const handleApprove = async (id) => {
-    if (!window.confirm('هل أنت متأكد من الموافقة على هذا العضو وإضافته للنظام؟')) return;
-    
-    setActionLoading(id);
-    try {
-      const res = await apiFetch(`/api/join-requests/${id}/approve`, { method: 'POST' });
-      if (res.ok) {
-        setRequests(requests.filter(r => r.id !== id));
-      } else {
-        const data = await res.json();
-        alert(data.error || 'خطأ أثناء الموافقة');
-      }
-    } catch (err) {
-      alert('تعذر الاتصال بالخادم');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const handleReject = async (id) => {
-    if (!window.confirm('هل أنت متأكد من رفض وحذف هذا الطلب؟')) return;
+    if (!window.confirm('هل أنت متأكد من حذف هذا العضو المنتسب؟')) return;
 
     setActionLoading(id);
     try {
@@ -58,7 +39,7 @@ export default function JoinRequestsPage() {
         setRequests(requests.filter(r => r.id !== id));
       } else {
         const data = await res.json();
-        alert(data.error || 'خطأ أثناء الرفض');
+        alert(data.error || 'خطأ أثناء الحذف');
       }
     } catch (err) {
       alert('تعذر الاتصال بالخادم');
@@ -75,8 +56,8 @@ export default function JoinRequestsPage() {
     <div className="page-content fade-in">
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">📨 طلبات الانضمام المعلقة</h2>
-          <span className="badge badge-warning">{requests.length} طلبات</span>
+          <h2 className="card-title">📝 الأعضاء المنتسبين (من الاستبيان)</h2>
+          <span className="badge badge-warning">{requests.length} عضو</span>
         </div>
         
         {error && <div className="login-error" style={{ margin: '20px' }}>⚠️ {error}</div>}
@@ -84,7 +65,7 @@ export default function JoinRequestsPage() {
         <div className="card-body">
           {requests.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-              لا يوجد أي طلبات انضمام معلقة حالياً.
+              لا يوجد أي أعضاء منتسبين جدد حالياً.
             </div>
           ) : (
             <div className="table-wrapper">
@@ -112,19 +93,11 @@ export default function JoinRequestsPage() {
                       <td data-label="الإجراءات">
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleApprove(req.id)}
-                            disabled={actionLoading === req.id}
-                            style={{ background: 'var(--success)', border: 'none', color: 'white' }}
-                          >
-                            {actionLoading === req.id ? '⏳' : '✅ قبول'}
-                          </button>
-                          <button
                             className="btn btn-danger btn-sm"
                             onClick={() => handleReject(req.id)}
                             disabled={actionLoading === req.id}
                           >
-                            {actionLoading === req.id ? '⏳' : '❌ رفض'}
+                            {actionLoading === req.id ? '⏳' : '❌ حذف'}
                           </button>
                         </div>
                       </td>
