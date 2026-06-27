@@ -23,10 +23,25 @@ export default function RegistrationPage() {
     setError('');
     setSuccess('');
 
+    // التحقق من الحقول الإلزامية
+    if (!form.full_name || !form.national_id || !form.phone_number || !form.date_of_birth || !form.qualification) {
+      setError('جميع الحقول مطلوبة، يرجى تعبئة الاستبيان كاملاً.');
+      setLoading(false);
+      return;
+    }
+
     // التحقق من الاسم الرباعي
     const nameParts = form.full_name.trim().split(/\s+/);
     if (nameParts.length < 4) {
       setError('يرجى إدخال الاسم الرباعي كاملاً (يجب أن يتكون من 4 مقاطع على الأقل)');
+      setLoading(false);
+      return;
+    }
+
+    // التحقق من رقم الهاتف (10 أرقام)
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(form.phone_number.trim())) {
+      setError('يرجى التأكد من رقم الهاتف (يجب أن يتكون من 10 أرقام)');
       setLoading(false);
       return;
     }

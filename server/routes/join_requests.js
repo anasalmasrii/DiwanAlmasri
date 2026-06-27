@@ -8,8 +8,13 @@ const router = express.Router();
 router.post('/public/register', async (req, res) => {
   const { full_name, national_id, date_of_birth, phone_number, qualification } = req.body;
   
-  if (!full_name || !phone_number) {
-    return res.status(400).json({ error: 'يرجى إدخال الاسم ورقم الهاتف على الأقل' });
+  if (!full_name || !national_id || !date_of_birth || !phone_number || !qualification) {
+    return res.status(400).json({ error: 'جميع الحقول مطلوبة، يرجى تعبئة الاستبيان كاملاً' });
+  }
+
+  const phoneRegex = /^\d{10}$/;
+  if (!phoneRegex.test(phone_number.trim())) {
+    return res.status(400).json({ error: 'يرجى التأكد من رقم الهاتف (يجب أن يتكون من 10 أرقام)' });
   }
 
   const nameParts = full_name.trim().split(/\s+/);
@@ -19,30 +24,6 @@ router.post('/public/register', async (req, res) => {
 
   try {
     const db = getDb();
-    
-    // Check if member already exists by national_id or name
-    let existing;
-    if (db.isPg) {
-      if (national_id) {
-        const { rows } = await db.query('SELECT id FROM members WHERE national_id = $1', [national_id]);
-        existing = rows[0];
-      }
-      if (!existing) {
-        const { rows } = await db.query('SELECT id FROM members WHERE full_name = $1', [full_name]);
-        existing = rows[0];
-      }
-    } else {
-      if (national_id) {
-        existing = db.get('SELECT id FROM members WHERE national_id = ?', [national_id]);
-      }
-      if (!existing) {
-        existing = db.get('SELECT id FROM members WHERE full_name = ?', [full_name]);
-      }
-    }
-
-    if (existing) {
-      return res.status(400).json({ error: 'العضو مسجل مسبقاً في النظام' });
-    }
 
     if (db.isPg) {
       await db.query(
