@@ -133,12 +133,20 @@ export default function JoinRequestsPage() {
         <div className="card-header">
           <h2 className="card-title">📝 الطلبات والأعضاء المنتسبين</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <span className="badge badge-warning" style={{ backgroundColor: activeTab === 'pending' ? 'var(--primary-color)' : 'var(--bg-secondary)', color: activeTab === 'pending' ? 'white' : 'var(--text-color)', cursor: 'pointer', padding: '10px 15px' }} onClick={() => setActiveTab('pending')}>
+            <button 
+              className={`btn ${activeTab === 'pending' ? 'btn-primary' : ''}`} 
+              style={activeTab !== 'pending' ? { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border)' } : {}}
+              onClick={() => setActiveTab('pending')}
+            >
               طلبات جديدة ({pendingRequests.length})
-            </span>
-            <span className="badge badge-success" style={{ backgroundColor: activeTab === 'affiliates' ? 'var(--primary-color)' : 'var(--bg-secondary)', color: activeTab === 'affiliates' ? 'white' : 'var(--text-color)', cursor: 'pointer', padding: '10px 15px' }} onClick={() => setActiveTab('affiliates')}>
+            </button>
+            <button 
+              className={`btn ${activeTab === 'affiliates' ? 'btn-primary' : ''}`} 
+              style={activeTab !== 'affiliates' ? { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border)' } : {}}
+              onClick={() => setActiveTab('affiliates')}
+            >
               الأعضاء المنتسبين ({affiliates.length})
-            </span>
+            </button>
           </div>
         </div>
         
