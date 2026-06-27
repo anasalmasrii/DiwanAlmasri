@@ -339,15 +339,15 @@ export default function MembersPage() {
                         {member.full_name}
                       </div>
                     </td>
-                    <td data-label="الرقم الوطني" style={{ direction: 'ltr', textAlign: 'right' }}>{member.national_id || '—'}</td>
-                    <td data-label="تاريخ الميلاد">{member.date_of_birth || '—'}</td>
-                    <td data-label="رقم الهاتف" style={{ direction: 'ltr', textAlign: 'right' }}>{member.phone_number || '—'}</td>
+                    <td data-label="الرقم الوطني" style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{member.national_id || '—'}</td>
+                    <td data-label="تاريخ الميلاد" style={{ whiteSpace: 'nowrap' }}>{member.date_of_birth ? member.date_of_birth.split('T')[0] : '—'}</td>
+                    <td data-label="رقم الهاتف" style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{member.phone_number || '—'}</td>
                     <td data-label="المؤهل العلمي">{member.qualification || '—'}</td>
-                    <td data-label="حالة السداد">{getStatusBadge(member)}</td>
-                    <td data-label="الأشهر المتراكمة"><span className={`payment-count ${member.months_owed > 0 ? 'badge-danger' : 'badge-success'}`} style={{ color: member.months_owed > 0 ? 'var(--danger)' : 'var(--success)' }}>{Math.max(0, member.months_owed)} أشهر</span></td>
-                    <td data-label="مجموع الاشتراكات" style={{ fontWeight: 700, color: 'var(--success)' }}>{member.total_subscriptions || 0} د.أ</td>
-                    <td data-label="مجموع المساهمات" style={{ fontWeight: 700, color: (member.total_contributions > 0 && member.total_contributions < 20) ? 'var(--danger)' : 'var(--accent)' }}>{member.total_contributions || 0} د.أ</td>
-                    <td data-label="الإجراءات">
+                    <td data-label="حالة السداد" style={{ whiteSpace: 'nowrap' }}>{getStatusBadge(member)}</td>
+                    <td data-label="الأشهر المتراكمة" style={{ whiteSpace: 'nowrap' }}><span className={`payment-count ${member.months_owed > 0 ? 'badge-danger' : 'badge-success'}`} style={{ color: member.months_owed > 0 ? 'var(--danger)' : 'var(--success)' }}>{Math.max(0, member.months_owed)} أشهر</span></td>
+                    <td data-label="مجموع الاشتراكات" style={{ fontWeight: 700, color: 'var(--success)', whiteSpace: 'nowrap' }}>{member.total_subscriptions || 0} د.أ</td>
+                    <td data-label="مجموع المساهمات" style={{ fontWeight: 700, color: (member.total_contributions > 0 && member.total_contributions < 20) ? 'var(--danger)' : 'var(--accent)', whiteSpace: 'nowrap' }}>{member.total_contributions || 0} د.أ</td>
+                    <td data-label="الإجراءات" style={{ whiteSpace: 'nowrap' }}>
                       <div className="action-buttons">
                         <button className="btn btn-secondary btn-sm" onClick={() => openPaymentModal(member)} title="إضافة دفعة">💰</button>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(member)} title="تعديل">✏️</button>
