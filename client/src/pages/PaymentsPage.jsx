@@ -465,8 +465,7 @@ export default function PaymentsPage() {
                       <option key={m.id} value={m.full_name} />
                     ))}
                   </datalist>
-                </div>
-                {form.member_id && (() => {
+                  {form.member_id && (() => {
                     const selectedMember = members.find(m => m.id === parseInt(form.member_id));
                     if (selectedMember && selectedMember.months_owed > 0) {
                       return (
