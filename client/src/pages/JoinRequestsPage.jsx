@@ -133,10 +133,10 @@ export default function JoinRequestsPage() {
         <div className="card-header">
           <h2 className="card-title">📝 الطلبات والأعضاء المنتسبين</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <span className="badge badge-warning" style={{ backgroundColor: activeTab === 'pending' ? 'var(--primary-color)' : 'var(--bg-color)', color: activeTab === 'pending' ? 'white' : 'var(--text-color)', cursor: 'pointer', padding: '10px 15px' }} onClick={() => setActiveTab('pending')}>
+            <span className="badge badge-warning" style={{ backgroundColor: activeTab === 'pending' ? 'var(--primary-color)' : 'var(--bg-secondary)', color: activeTab === 'pending' ? 'white' : 'var(--text-color)', cursor: 'pointer', padding: '10px 15px' }} onClick={() => setActiveTab('pending')}>
               طلبات جديدة ({pendingRequests.length})
             </span>
-            <span className="badge badge-success" style={{ backgroundColor: activeTab === 'affiliates' ? 'var(--primary-color)' : 'var(--bg-color)', color: activeTab === 'affiliates' ? 'white' : 'var(--text-color)', cursor: 'pointer', padding: '10px 15px' }} onClick={() => setActiveTab('affiliates')}>
+            <span className="badge badge-success" style={{ backgroundColor: activeTab === 'affiliates' ? 'var(--primary-color)' : 'var(--bg-secondary)', color: activeTab === 'affiliates' ? 'white' : 'var(--text-color)', cursor: 'pointer', padding: '10px 15px' }} onClick={() => setActiveTab('affiliates')}>
               الأعضاء المنتسبين ({affiliates.length})
             </span>
           </div>
@@ -242,7 +242,7 @@ export default function JoinRequestsPage() {
       {/* Match Modal */}
       {matchModalOpen && selectedRequest && (
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div className="modal-content" style={{ backgroundColor: 'var(--bg-color)', padding: '25px', borderRadius: '12px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+          <div className="modal-content" style={{ backgroundColor: 'var(--bg-secondary)', padding: '25px', borderRadius: '12px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             <h3 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--primary-color)' }}>
               {modalLoading ? '⏳ جاري الفحص...' : matchData ? '🔄 مطابقة العضو' : '➕ إضافة كعضو جديد'}
             </h3>
