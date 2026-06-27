@@ -163,7 +163,7 @@ export default function RegistrationPage() {
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '15px', width: '100%', padding: '12px', fontSize: '1.05rem', fontWeight: 'bold' }}>
-              {loading ? '⏳ جاري الإرسال...' : '📨 إرسال طلب الانضمام'}
+              {loading ? '⏳ جاري الإرسال...' : 'إرسال طلب الانضمام'}
             </button>
 
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
