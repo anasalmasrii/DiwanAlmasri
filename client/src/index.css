@@ -472,6 +472,13 @@ input, select, textarea, button {
   word-break: break-word;
 }
 
+.data-table th:first-child,
+.data-table td:first-child {
+  white-space: nowrap;
+  width: 1%; /* Shrink to fit */
+  text-align: center;
+}
+
 .data-table tbody tr {
   transition: background var(--transition-fast);
 }
