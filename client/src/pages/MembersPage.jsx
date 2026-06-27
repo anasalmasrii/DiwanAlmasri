@@ -39,6 +39,7 @@ export default function MembersPage() {
     national_id: '',
     date_of_birth: '',
     phone_number: '',
+    qualification: '',
     join_date: new Date().toISOString().split('T')[0],
   });
 
@@ -84,7 +85,7 @@ export default function MembersPage() {
   };
 
   const resetForm = () => {
-    setForm({ full_name: '', national_id: '', date_of_birth: '', phone_number: '', join_date: new Date().toISOString().split('T')[0] });
+    setForm({ full_name: '', national_id: '', date_of_birth: '', phone_number: '', qualification: '', join_date: new Date().toISOString().split('T')[0] });
     setEditingMember(null);
   };
 
@@ -100,6 +101,7 @@ export default function MembersPage() {
       national_id: member.national_id || '',
       date_of_birth: member.date_of_birth || '',
       phone_number: member.phone_number || '',
+      qualification: member.qualification || '',
       join_date: member.join_date || new Date().toISOString().split('T')[0],
     });
     setShowModal(true);
@@ -316,6 +318,7 @@ export default function MembersPage() {
                   <th>الرقم الوطني</th>
                   <th>تاريخ الميلاد</th>
                   <th>رقم الهاتف</th>
+                  <th>المؤهل العلمي</th>
                   <th>حالة السداد</th>
                   <th>الأشهر المتراكمة</th>
                   <th>مجموع الاشتراكات</th>
@@ -339,6 +342,7 @@ export default function MembersPage() {
                     <td data-label="الرقم الوطني" style={{ direction: 'ltr', textAlign: 'right' }}>{member.national_id || '—'}</td>
                     <td data-label="تاريخ الميلاد">{member.date_of_birth || '—'}</td>
                     <td data-label="رقم الهاتف" style={{ direction: 'ltr', textAlign: 'right' }}>{member.phone_number || '—'}</td>
+                    <td data-label="المؤهل العلمي">{member.qualification || '—'}</td>
                     <td data-label="حالة السداد">{getStatusBadge(member)}</td>
                     <td data-label="الأشهر المتراكمة"><span className={`payment-count ${member.months_owed > 0 ? 'badge-danger' : 'badge-success'}`} style={{ color: member.months_owed > 0 ? 'var(--danger)' : 'var(--success)' }}>{Math.max(0, member.months_owed)} أشهر</span></td>
                     <td data-label="مجموع الاشتراكات" style={{ fontWeight: 700, color: 'var(--success)' }}>{member.total_subscriptions || 0} د.أ</td>
@@ -396,6 +400,10 @@ export default function MembersPage() {
                     <label className="form-label">رقم الهاتف</label>
                     <input id="member-phone" type="tel" className="form-input" placeholder="مثال: 0791234567" value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} style={{ direction: 'ltr', textAlign: 'right' }} />
                   </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">المؤهل العلمي</label>
+                  <input id="member-qualification" type="text" className="form-input" placeholder="أدخل المؤهل العلمي" value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">تاريخ الانضمام / بداية الاشتراك *</label>

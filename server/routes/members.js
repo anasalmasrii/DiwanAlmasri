@@ -67,7 +67,7 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   const db = getDb();
-  const { full_name, national_id, date_of_birth, phone_number } = req.body;
+  const { full_name, national_id, date_of_birth, phone_number, qualification } = req.body;
 
   if (!full_name) {
     return res.status(400).json({ error: 'الاسم الكامل مطلوب' });
@@ -75,8 +75,8 @@ router.post('/', async (req, res) => {
 
   try {
     const result = await db.run(
-      'INSERT INTO members (full_name, national_id, date_of_birth, phone_number, join_date) VALUES (?, ?, ?, ?, ?)',
-      [full_name, national_id || null, date_of_birth || null, phone_number || null, req.body.join_date || new Date().toISOString().split('T')[0]]
+      'INSERT INTO members (full_name, national_id, date_of_birth, phone_number, qualification, join_date) VALUES (?, ?, ?, ?, ?, ?)',
+      [full_name, national_id || null, date_of_birth || null, phone_number || null, qualification || null, req.body.join_date || new Date().toISOString().split('T')[0]]
     );
 
     const member = await db.get('SELECT * FROM members WHERE id = ?', [result.lastInsertRowid]);
@@ -93,7 +93,7 @@ router.post('/', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   const db = getDb();
-  const { full_name, national_id, date_of_birth, phone_number } = req.body;
+  const { full_name, national_id, date_of_birth, phone_number, qualification } = req.body;
   const { id } = req.params;
 
   try {
@@ -103,12 +103,13 @@ router.put('/:id', async (req, res) => {
     }
 
     await db.run(
-      'UPDATE members SET full_name = ?, national_id = ?, date_of_birth = ?, phone_number = ?, join_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      'UPDATE members SET full_name = ?, national_id = ?, date_of_birth = ?, phone_number = ?, qualification = ?, join_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
       [
         full_name || existing.full_name,
         national_id !== undefined ? national_id : existing.national_id,
         date_of_birth !== undefined ? date_of_birth : existing.date_of_birth,
         phone_number !== undefined ? phone_number : existing.phone_number,
+        qualification !== undefined ? qualification : existing.qualification,
         req.body.join_date !== undefined ? req.body.join_date : existing.join_date,
         Number(id),
       ]
