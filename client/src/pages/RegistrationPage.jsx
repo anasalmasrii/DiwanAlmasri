@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import ar from 'date-fns/locale/ar-SA';
+
+registerLocale('ar', ar);
 
 export default function RegistrationPage() {
   const [form, setForm] = useState({
@@ -140,13 +145,19 @@ export default function RegistrationPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">تاريخ الميلاد</label>
-              <input
-                type="date"
-                name="date_of_birth"
+              <label className="form-label">تاريخ الميلاد *</label>
+              <DatePicker
+                selected={form.date_of_birth ? new Date(form.date_of_birth) : null}
+                onChange={(date) => setForm({ ...form, date_of_birth: date ? date.toLocaleDateString('en-CA') : '' })}
+                dateFormat="yyyy/MM/dd"
+                locale="ar"
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
                 className="form-input"
-                value={form.date_of_birth}
-                onChange={handleChange}
+                isClearable
+                placeholderText="اختر تاريخ الميلاد"
+                required
               />
             </div>
 
