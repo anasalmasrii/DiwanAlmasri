@@ -62,10 +62,11 @@ export default function RegistrationPage() {
   return (
     <div className="login-container" style={{ padding: '20px' }}>
       <div className="login-card" style={{ maxWidth: '500px', width: '100%', margin: '40px auto' }}>
-        <div className="login-header">
-          <div className="login-logo">
-            <span>✨</span> ديوان المصري
+        <div className="login-header" style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <div className="login-logo" style={{ marginBottom: '-15px', marginTop: '-10px' }}>
+            <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '150px', height: '150px', objectFit: 'contain' }} />
           </div>
+          <h1 className="login-title" style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>ديوان المصري</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>استبيان طلب انضمام للديوان</p>
         </div>
 
