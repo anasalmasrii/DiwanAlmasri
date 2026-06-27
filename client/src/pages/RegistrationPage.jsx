@@ -23,6 +23,14 @@ export default function RegistrationPage() {
     setError('');
     setSuccess('');
 
+    // التحقق من الاسم الرباعي
+    const nameParts = form.full_name.trim().split(/\s+/);
+    if (nameParts.length < 4) {
+      setError('يرجى إدخال الاسم الرباعي كاملاً (يجب أن يتكون من 4 مقاطع على الأقل)');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/join-requests/public/register', {
         method: 'POST',

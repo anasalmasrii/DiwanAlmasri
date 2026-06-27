@@ -12,6 +12,11 @@ router.post('/public/register', async (req, res) => {
     return res.status(400).json({ error: 'يرجى إدخال الاسم ورقم الهاتف على الأقل' });
   }
 
+  const nameParts = full_name.trim().split(/\s+/);
+  if (nameParts.length < 4) {
+    return res.status(400).json({ error: 'يرجى إدخال الاسم الرباعي كاملاً (يجب أن يتكون من 4 مقاطع على الأقل)' });
+  }
+
   try {
     const db = getDb();
     
