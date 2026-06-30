@@ -531,6 +531,7 @@ export default function ReportsPage() {
 
         @media print {
           @page { margin: 0; }
+          html, body { background: #ffffff !important; }
           body { padding: 1.5cm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
           /* Hide app layout elements */
