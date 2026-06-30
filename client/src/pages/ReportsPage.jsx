@@ -44,8 +44,8 @@ export default function ReportsPage() {
         if (filterStatus !== 'all' && Array.isArray(members)) {
           // filter by payment status
           members = members.filter(m => {
-            const paid = m.months_owed <= 0;
-            return filterStatus === 'paid' ? paid : !paid;
+            const isPaid = filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0);
+            return filterStatus === 'paid' ? isPaid : !isPaid;
           });
         }
         data = { members: Array.isArray(members) ? members : [] };
@@ -137,11 +137,11 @@ export default function ReportsPage() {
               <div className="rsb-label">إجمالي الأعضاء</div>
             </div>
             <div className="report-summary-box green">
-              <div className="rsb-val">{members.filter(m => m.months_owed <= 0).length}</div>
+              <div className="rsb-val">{members.filter(m => filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0)).length}</div>
               <div className="rsb-label">مسددون</div>
             </div>
             <div className="report-summary-box red">
-              <div className="rsb-val">{members.filter(m => m.months_owed > 0).length}</div>
+              <div className="rsb-val">{members.filter(m => filterMonth ? (m.payment_status !== 'paid') : ((m.yearly_subscriptions || 0) <= 0)).length}</div>
               <div className="rsb-label">متأخرون</div>
             </div>
           </div>
@@ -169,8 +169,10 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {members.map((m, i) => (
-                <tr key={m.id} className={m.months_owed > 0 ? 'row-danger' : ''}>
+              {members.map((m, i) => {
+                const isPaid = filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0);
+                return (
+                <tr key={m.id} className={!isPaid ? 'row-danger' : ''}>
                   <td>{i + 1}</td>
                   <td style={{ fontWeight: 600 }}>{m.full_name}</td>
                   <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.national_id || '—'}</td>
@@ -202,14 +204,15 @@ export default function ReportsPage() {
                   <td>
                     <span style={{
                       padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600,
-                      background: m.months_owed <= 0 ? '#d1fae5' : '#fee2e2',
-                      color: m.months_owed <= 0 ? '#065f46' : '#991b1b'
+                      background: isPaid ? '#d1fae5' : '#fee2e2',
+                      color: isPaid ? '#065f46' : '#991b1b'
                     }}>
-                      {m.months_owed <= 0 ? 'مسدد' : 'متأخر'}
+                      {isPaid ? 'مسدد' : 'متأخر'}
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
