@@ -41,14 +41,14 @@ export default function ReportsPage() {
       if (reportType === 'members') {
         const res = await apiFetch(`/api/members?year=${filterYear}&month=${filterMonth}`);
         let members = await res.json();
-        if (filterStatus !== 'all') {
+        if (filterStatus !== 'all' && Array.isArray(members)) {
           // filter by payment status
           members = members.filter(m => {
             const paid = m.months_owed <= 0;
             return filterStatus === 'paid' ? paid : !paid;
           });
         }
-        data = { members };
+        data = { members: Array.isArray(members) ? members : [] };
 
       } else if (reportType === 'payments') {
         const params = `month=${filterMonth}&year=${filterYear}`;
@@ -92,7 +92,8 @@ export default function ReportsPage() {
 
   const formatPaidMonths = (monthsStr) => {
     if (!monthsStr) return '—';
-    const months = [...new Set(monthsStr.split(',').map(Number))].sort((a, b) => a - b);
+    const str = String(monthsStr);
+    const months = [...new Set(str.split(',').map(Number))].sort((a, b) => a - b);
     if (months.length === 0) return '—';
     
     let ranges = [];
