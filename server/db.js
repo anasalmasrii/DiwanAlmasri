@@ -282,6 +282,9 @@ function convertSqlForPg(sql) {
   converted = converted.replace(/strftime\('%Y',\s*'now'\)/gi, "EXTRACT(YEAR FROM CURRENT_DATE)");
   converted = converted.replace(/strftime\('%m',\s*'now'\)/gi, "EXTRACT(MONTH FROM CURRENT_DATE)");
   
+  // GROUP_CONCAT fallback
+  converted = converted.replace(/GROUP_CONCAT\(([^)]+)\)/gi, "STRING_AGG($1::text, ',')");
+  
   return converted;
 }
 

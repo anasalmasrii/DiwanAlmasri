@@ -59,7 +59,7 @@ router.get('/', async (req, res) => {
     res.json(members);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'خطأ داخلي' });
+    res.status(500).json({ error: err.message || 'خطأ داخلي' });
   }
 });
 

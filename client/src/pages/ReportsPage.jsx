@@ -41,14 +41,18 @@ export default function ReportsPage() {
       if (reportType === 'members') {
         const res = await apiFetch(`/api/members?year=${filterYear}&month=${filterMonth}`);
         let members = await res.json();
-        if (filterStatus !== 'all' && Array.isArray(members)) {
-          // filter by payment status
-          members = members.filter(m => {
-            const isPaid = filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0);
-            return filterStatus === 'paid' ? isPaid : !isPaid;
-          });
+        if (members.error) {
+          data = { error: members.error };
+        } else {
+          if (filterStatus !== 'all' && Array.isArray(members)) {
+            // filter by payment status
+            members = members.filter(m => {
+              const isPaid = filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0);
+              return filterStatus === 'paid' ? isPaid : !isPaid;
+            });
+          }
+          data = { members: Array.isArray(members) ? members : [] };
         }
-        data = { members: Array.isArray(members) ? members : [] };
 
       } else if (reportType === 'payments') {
         const params = `month=${filterMonth}&year=${filterYear}`;
@@ -125,6 +129,9 @@ export default function ReportsPage() {
 
   const renderReportContent = () => {
     if (!reportData) return null;
+    if (reportData.error) {
+      return <div className="alert alert-danger">{reportData.error}</div>;
+    }
 
     if (reportType === 'members') {
       const { members } = reportData;
