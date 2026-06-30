@@ -4,7 +4,7 @@
  * يعرض الروابط بناءً على صلاحيات المستخدم
  */
 
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -23,13 +23,13 @@ export default function Sidebar({ isOpen, onClose }) {
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-header">
+      <Link to="/dashboard" className="sidebar-header" onClick={onClose} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
         <div className="sidebar-logo">
           <img src="/DiwanAlmasri-logo.png" alt="شعار" className="sidebar-logo-icon" style={{ width: '80px', height: '80px', objectFit: 'contain', margin: '-15px' }} />
           <span>ديوان المصري</span>
         </div>
         <div className="sidebar-subtitle">نظام إدارة الاشتراكات</div>
-      </div>
+      </Link>
 
       <nav className="sidebar-nav">
         {navItems.map((item) =>
