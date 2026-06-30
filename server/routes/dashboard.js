@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
     let paidSubscriptionsCount = 0;
     let paidContributionsCount = 0;
     let unpaidCount = 0;
-    let isAfterDeadline = true; // Always due at the start of the month
+    let isAfterDeadline = currentDay > 25; // Default for specific month
 
     if (filterMonth === 'all') {
       // إحصائيات لجميع الأشهر
@@ -106,8 +106,11 @@ router.get('/', async (req, res) => {
       `, [monthNum, currentYear]);
       unpaidCount = unpaidRes ? parseInt(unpaidRes.count, 10) : 0;
 
-      // Subscription is due at the beginning of the month
-      isAfterDeadline = true;
+      // Update isAfterDeadline based on if the selected month is past
+      const currentRealMonth = now.getMonth() + 1;
+      if (monthNum < currentRealMonth) isAfterDeadline = true;
+      else if (monthNum > currentRealMonth) isAfterDeadline = false;
+      else isAfterDeadline = currentDay > 25;
     }
 
     const monthlyRevenueTotal = monthlyRevenueSubscriptions + monthlyRevenueContributions;
@@ -151,7 +154,7 @@ router.get('/defaulters', async (req, res) => {
 
   try {
     let defaulters = [];
-    let isAfterDeadline = true;
+    let isAfterDeadline = currentDay > 25;
     let deadline = '';
 
     if (filterMonth === 'all') {
@@ -180,9 +183,12 @@ router.get('/defaulters', async (req, res) => {
         ORDER BY m.full_name
       `, [monthNum, currentYear]);
       
-      isAfterDeadline = true;
+      const currentRealMonth = now.getMonth() + 1;
+      if (monthNum < currentRealMonth) isAfterDeadline = true;
+      else if (monthNum > currentRealMonth) isAfterDeadline = false;
+      else isAfterDeadline = currentDay > 25;
 
-      deadline = `${currentYear}-${String(monthNum).padStart(2, '0')}-01`;
+      deadline = `${currentYear}-${String(monthNum).padStart(2, '0')}-25`;
     }
 
     res.json({

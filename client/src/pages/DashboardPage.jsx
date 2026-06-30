@@ -179,12 +179,14 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* تنبيه الاستحقاق */}
-      {stats.currentMonth !== 'all' && stats.unpaidCount > 0 && (
-        <div className="deadline-banner after">
-          <span className="deadline-icon">🔴</span>
+      {/* تنبيه الموعد النهائي */}
+      {stats.currentMonth !== 'all' && (
+        <div className={`deadline-banner ${stats.isAfterDeadline ? 'after' : 'before'}`}>
+          <span className="deadline-icon">{stats.isAfterDeadline ? '🔴' : '🟡'}</span>
           <span>
-            تستحق الاشتراكات في بداية كل شهر. يوجد أعضاء متأخرين عن سداد اشتراك {monthName}.
+            {stats.isAfterDeadline
+              ? `انتهى الموعد النهائي للسداد (يوم 25 من ${monthName}). الأعضاء غير المسددين يُعتبرون متخلفين.`
+              : `الموعد النهائي للسداد: يوم 25 من ${monthName}. لا يزال هناك وقت للسداد.`}
           </span>
         </div>
       )}
@@ -196,8 +198,10 @@ export default function DashboardPage() {
             <span>⚠️</span>
             <span>
               {stats.currentMonth === 'all'
-                ? 'متخلفين عن السداد كلياً'
-                : `المتخلفين عن سداد ${monthName}`
+                ? 'لم يسددوا أي اشتراك إطلاقاً'
+                : (stats.isAfterDeadline
+                  ? `المتخلفين عن سداد ${monthName}`
+                  : `لم يسددوا بعد - ${monthName}`)
               }
             </span>
           </h2>
