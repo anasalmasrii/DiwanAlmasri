@@ -19,16 +19,18 @@ router.use(requirePermission('members'));
  */
 router.get('/', async (req, res) => {
   const db = getDb();
-  const { q } = req.query;
+  const { q, month, year } = req.query;
   const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
+  const currentMonth = month ? parseInt(month) : now.getMonth() + 1;
+  const currentYear = year ? parseInt(year) : now.getFullYear();
 
   const baseQuery = `
     SELECT m.*,
       (SELECT COUNT(*) FROM payments WHERE member_id = m.id) as total_payments,
       (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE member_id = m.id AND payment_type = 'اشتراك') as total_subscriptions,
       (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE member_id = m.id AND payment_type = 'مساهمة') as total_contributions,
+      (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE member_id = m.id AND payment_type = 'اشتراك' AND year = ?) as yearly_subscriptions,
+      (SELECT GROUP_CONCAT(month) FROM payments WHERE member_id = m.id AND payment_type = 'اشتراك' AND year = ?) as paid_months,
       (
         (cast(strftime('%Y', 'now') as integer) - cast(strftime('%Y', m.join_date) as integer)) * 12 
         + (cast(strftime('%m', 'now') as integer) - cast(strftime('%m', m.join_date) as integer)) 
@@ -48,12 +50,12 @@ router.get('/', async (req, res) => {
       const pattern = `%${q}%`;
       const members = await db.all(
         baseQuery + ` WHERE m.full_name LIKE ? OR m.phone_number LIKE ? OR m.national_id LIKE ? ORDER BY m.created_at DESC`,
-        [currentMonth, currentYear, pattern, pattern, pattern]
+        [currentYear, currentYear, currentMonth, currentYear, pattern, pattern, pattern]
       );
       return res.json(members);
     }
 
-    const members = await db.all(baseQuery + ` ORDER BY m.created_at DESC`, [currentMonth, currentYear]);
+    const members = await db.all(baseQuery + ` ORDER BY m.created_at DESC`, [currentYear, currentYear, currentMonth, currentYear]);
     res.json(members);
   } catch (err) {
     console.error(err);

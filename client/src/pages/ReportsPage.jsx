@@ -90,6 +90,38 @@ export default function ReportsPage() {
     return now.toLocaleDateString('ar-JO', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const formatPaidMonths = (monthsStr) => {
+    if (!monthsStr) return '—';
+    const months = [...new Set(monthsStr.split(',').map(Number))].sort((a, b) => a - b);
+    if (months.length === 0) return '—';
+    
+    let ranges = [];
+    let start = months[0];
+    let end = months[0];
+
+    for (let i = 1; i < months.length; i++) {
+      if (months[i] === end + 1) {
+        end = months[i];
+      } else {
+        if (end - start >= 3) {
+          ranges.push(`${start}-${end}`);
+        } else {
+          for (let j = start; j <= end; j++) ranges.push(j);
+        }
+        start = months[i];
+        end = months[i];
+      }
+    }
+    
+    if (end - start >= 3) {
+      ranges.push(`${start}-${end}`);
+    } else {
+      for (let j = start; j <= end; j++) ranges.push(j);
+    }
+    
+    return ranges.join('، ');
+  };
+
   const renderReportContent = () => {
     if (!reportData) return null;
 
@@ -120,9 +152,18 @@ export default function ReportsPage() {
                 <th>الرقم الوطني</th>
                 <th>رقم الهاتف</th>
                 <th>تاريخ الانضمام</th>
-                <th>إجمالي الاشتراكات</th>
-                {filterStatus === 'unpaid' ? <th>المبلغ المطلوب</th> : <th>إجمالي المساهمات</th>}
-                <th>الأشهر المتراكمة</th>
+                {filterStatus === 'paid' ? (
+                  <>
+                    <th>الاشتراكات المدفوعة (للسنة)</th>
+                    <th>الأشهر المدفوعة</th>
+                  </>
+                ) : (
+                  <>
+                    <th>إجمالي الاشتراكات</th>
+                    {filterStatus === 'unpaid' ? <th>المبلغ المطلوب</th> : <th>إجمالي المساهمات</th>}
+                    <th>الأشهر المتراكمة</th>
+                  </>
+                )}
                 <th>الحالة</th>
               </tr>
             </thead>
@@ -134,15 +175,29 @@ export default function ReportsPage() {
                   <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.national_id || '—'}</td>
                   <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.phone_number || '—'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>
-                  {filterStatus === 'unpaid' ? (
-                    <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>{(Math.max(0, m.months_owed) * 3).toLocaleString('en-US')} د.أ</td>
+                  
+                  {filterStatus === 'paid' ? (
+                    <>
+                      <td style={{ whiteSpace: 'nowrap', fontWeight: 700, color: '#10b981' }}>
+                        {(m.yearly_subscriptions || 0).toLocaleString('en-US')} د.أ
+                      </td>
+                      <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap', direction: 'ltr' }}>
+                        {m.paid_months ? `الأشهر (${formatPaidMonths(m.paid_months)})` : '—'}
+                      </td>
+                    </>
                   ) : (
-                    <td style={{ whiteSpace: 'nowrap' }}>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
+                    <>
+                      <td style={{ whiteSpace: 'nowrap' }}>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>
+                      {filterStatus === 'unpaid' ? (
+                        <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>{(Math.max(0, m.months_owed) * 3).toLocaleString('en-US')} د.أ</td>
+                      ) : (
+                        <td style={{ whiteSpace: 'nowrap' }}>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
+                      )}
+                      <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        {Math.max(0, m.months_owed)} شهر
+                      </td>
+                    </>
                   )}
-                  <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                    {Math.max(0, m.months_owed)} شهر
-                  </td>
                   <td>
                     <span style={{
                       padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600,
