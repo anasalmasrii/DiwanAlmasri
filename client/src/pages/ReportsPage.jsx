@@ -530,6 +530,9 @@ export default function ReportsPage() {
         .print-table .row-danger { background: #fff5f5 !important; }
 
         @media print {
+          @page { margin: 0; }
+          body { padding: 1.5cm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
           /* Hide app layout elements */
           .sidebar, .sidebar-overlay, .header, .page-header { display: none !important; }
           
