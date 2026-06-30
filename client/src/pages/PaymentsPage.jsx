@@ -429,7 +429,7 @@ export default function PaymentsPage() {
       {/* نافذة تفاصيل مجموعة الدفعات */}
       {groupEditModal && (
         <div className="modal-overlay" onClick={() => setGroupEditModal(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px', width: '90%' }}>
             <div className="modal-header">
               <h3 className="modal-title">تفاصيل دفعات {groupEditModal.member_name} ({groupEditModal.year})</h3>
               <button className="modal-close" onClick={() => setGroupEditModal(null)}>✕</button>
@@ -449,11 +449,11 @@ export default function PaymentsPage() {
                   <tbody>
                     {groupEditModal.payments.sort((a,b) => b.month - a.month).map(p => (
                       <tr key={p.id}>
-                        <td>{p.payment_type}</td>
-                        <td>شهر {p.month}</td>
-                        <td style={{ direction: 'ltr', textAlign: 'right' }}>{p.amount} د.أ</td>
-                        <td>{p.payment_date.split('T')[0]}</td>
-                        <td>
+                        <td style={{ whiteSpace: 'nowrap' }}>{p.payment_type}</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>شهر {p.month}</td>
+                        <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{p.amount} د.أ</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>{p.payment_date.split('T')[0]}</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
                           <div style={{ display: 'flex', gap: '5px' }}>
                             <button
                               className="btn btn-secondary btn-sm"
