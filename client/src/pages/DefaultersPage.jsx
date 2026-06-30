@@ -50,12 +50,10 @@ export default function DefaultersPage() {
         <div>
           <h2 className="page-title">
             <span>⚠️</span>
-            <span>
-              {isAfterDeadline ? 'المتخلفين عن السداد' : 'لم يسددوا بعد'}
-            </span>
+            <span>المتخلفين عن السداد</span>
           </h2>
           <p className="page-description">
-            {monthName} {data.currentYear} — {defaulters.length} عضو
+            {monthName} {data.currentYear} — {defaulters.length} عضو متأخر
           </p>
         </div>
         <button className="btn btn-secondary" onClick={loadDefaulters}>
@@ -63,19 +61,15 @@ export default function DefaultersPage() {
         </button>
       </div>
 
-      {/* تنبيه الموعد النهائي */}
-      <div className={`deadline-banner ${isAfterDeadline ? 'after' : 'before'}`}>
-        <span className="deadline-icon">{isAfterDeadline ? '🔴' : '🟡'}</span>
+      {/* تنبيه الاستحقاق */}
+      <div className="deadline-banner after">
+        <span className="deadline-icon">🔴</span>
         <div>
           <strong style={{ display: 'block', marginBottom: '4px' }}>
-            {isAfterDeadline
-              ? '⛔ انتهى الموعد النهائي للسداد!'
-              : '⏳ الموعد النهائي لم يحن بعد'}
+            اشتراكات متأخرة
           </strong>
           <span>
-            {isAfterDeadline
-              ? `تجاوز الأعضاء التالية أسماؤهم الموعد النهائي (25 ${monthName}) دون سداد الاشتراك الشهري.`
-              : `الموعد النهائي لسداد اشتراك ${monthName} هو يوم 25. الأعضاء أدناه لم يسددوا بعد ولكن لا يزال أمامهم وقت.`}
+            تستحق الاشتراكات بداية كل شهر. الأعضاء أدناه متأخرين عن سداد اشتراك {monthName}.
           </span>
         </div>
       </div>
@@ -84,12 +78,8 @@ export default function DefaultersPage() {
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">
-            <span>{isAfterDeadline ? '🚨' : '📋'}</span>
-            <span>
-              {isAfterDeadline
-                ? `قائمة المتخلفين — ${monthName} ${data.currentYear}`
-                : `لم يسددوا بعد — ${monthName} ${data.currentYear}`}
-            </span>
+            <span>🚨</span>
+            <span>قائمة المتخلفين — {monthName} {data.currentYear}</span>
           </h3>
           <span className={`badge ${isAfterDeadline ? 'badge-inactive' : 'badge-warning'}`}>
             {defaulters.length} عضو
@@ -130,12 +120,8 @@ export default function DefaultersPage() {
                       <span className="payment-count">{member.total_payments || 0}</span>
                     </td>
                     <td data-label="الحالة">
-                      <span
-                        className={`badge ${
-                          isAfterDeadline ? 'badge-inactive' : 'badge-warning'
-                        }`}
-                      >
-                        {isAfterDeadline ? '🔴 متخلف' : '🟡 لم يسدد بعد'}
+                      <span className="badge badge-inactive">
+                        🔴 متخلف
                       </span>
                     </td>
                   </tr>
@@ -154,10 +140,10 @@ export default function DefaultersPage() {
         <div className="card-body">
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              display: 'flex',
               gap: '20px',
               textAlign: 'center',
+              justifyContent: 'center'
             }}
           >
             <div>
@@ -165,29 +151,7 @@ export default function DefaultersPage() {
                 {defaulters.length}
               </div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                {isAfterDeadline ? 'عضو متخلف' : 'عضو لم يسدد'}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent)' }}>
-                25 {monthName}
-              </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                الموعد النهائي
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: '2rem',
-                  fontWeight: 800,
-                  color: isAfterDeadline ? 'var(--danger)' : 'var(--warning)',
-                }}
-              >
-                {isAfterDeadline ? '⛔' : '⏳'}
-              </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                {isAfterDeadline ? 'تجاوز الموعد' : 'لم يحن الموعد'}
+                عضو متخلف
               </div>
             </div>
           </div>
