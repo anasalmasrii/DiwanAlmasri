@@ -131,16 +131,16 @@ export default function ReportsPage() {
                 <tr key={m.id} className={m.months_owed > 0 ? 'row-danger' : ''}>
                   <td>{i + 1}</td>
                   <td style={{ fontWeight: 600 }}>{m.full_name}</td>
-                  <td>{m.national_id || '—'}</td>
-                  <td>{m.phone_number || '—'}</td>
-                  <td>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
-                  <td>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>
+                  <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.national_id || '—'}</td>
+                  <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.phone_number || '—'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>
                   {filterStatus === 'unpaid' ? (
-                    <td style={{ color: '#ef4444', fontWeight: 700 }}>{(Math.max(0, m.months_owed) * 3).toLocaleString('en-US')} د.أ</td>
+                    <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>{(Math.max(0, m.months_owed) * 3).toLocaleString('en-US')} د.أ</td>
                   ) : (
-                    <td>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
                   )}
-                  <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                  <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
                     {Math.max(0, m.months_owed)} شهر
                   </td>
                   <td>
