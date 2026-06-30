@@ -446,7 +446,10 @@ export default function ReportsPage() {
         <div className="card" ref={printRef} id="report-preview">
           <div className="card-header" style={{ justifyContent: 'space-between' }}>
             <h3 className="card-title">📋 معاينة التقرير</h3>
-            <button className="btn btn-primary btn-sm" onClick={handlePrint}>🖨️ طباعة</button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-secondary btn-sm" onClick={handlePrint}>📥 حفظ كـ PDF</button>
+              <button className="btn btn-primary btn-sm" onClick={handlePrint}>🖨️ طباعة</button>
+            </div>
           </div>
 
           {/* محتوى الطباعة */}
