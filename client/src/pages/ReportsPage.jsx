@@ -121,7 +121,7 @@ export default function ReportsPage() {
                 <th>رقم الهاتف</th>
                 <th>تاريخ الانضمام</th>
                 <th>إجمالي الاشتراكات</th>
-                <th>إجمالي المساهمات</th>
+                {filterStatus === 'unpaid' ? <th>المبلغ المطلوب</th> : <th>إجمالي المساهمات</th>}
                 <th>الأشهر المتراكمة</th>
                 <th>الحالة</th>
               </tr>
@@ -135,7 +135,11 @@ export default function ReportsPage() {
                   <td>{m.phone_number || '—'}</td>
                   <td>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
                   <td>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>
-                  <td>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
+                  {filterStatus === 'unpaid' ? (
+                    <td style={{ color: '#ef4444', fontWeight: 700 }}>{(Math.max(0, m.months_owed) * 3).toLocaleString('en-US')} د.أ</td>
+                  ) : (
+                    <td>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
+                  )}
                   <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700 }}>
                     {Math.max(0, m.months_owed)} شهر
                   </td>
@@ -450,9 +454,12 @@ export default function ReportsPage() {
             {/* رأس التقرير للطباعة */}
             <div className="print-header">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: '#1e293b' }}>ديوان المصري</h1>
-                  <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.85rem' }}>نظام إدارة الاشتراكات والمحاسبة</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
+                  <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: '#1e293b' }}>ديوان المصري</h1>
+                    <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.85rem' }}>نظام إدارة الاشتراكات والمحاسبة</p>
+                  </div>
                 </div>
                 <div style={{ textAlign: 'left', fontSize: '0.82rem', color: '#64748b' }}>
                   <div>تاريخ الإصدار: {formatDate()}</div>
