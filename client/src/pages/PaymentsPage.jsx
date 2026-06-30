@@ -183,28 +183,43 @@ export default function PaymentsPage() {
 
   const totalAmount = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
-  // Group payments by member_id, month, year
+  // Group payments by member_id and year
   const groupedPayments = Object.values(payments.reduce((acc, p) => {
-    const key = `${p.member_id}-${p.month}-${p.year}`;
+    const key = `${p.member_id}-${p.year}`;
     if (!acc[key]) {
       acc[key] = {
         key,
         member_id: p.member_id,
         member_name: p.member_name,
-        month: p.month,
         year: p.year,
-        payment_date: p.payment_date, // will just take the first one or we could format it
-        subscription: null,
-        contribution: null,
-        notes: []
+        months: [],
+        total_subscription: 0,
+        total_contribution: 0,
+        latest_payment_date: p.payment_date,
+        notes: [],
+        payments: []
       };
     }
-    if (p.payment_type === 'اشتراك') acc[key].subscription = p;
-    else if (p.payment_type === 'مساهمة') acc[key].contribution = p;
+    
+    if (!acc[key].months.includes(p.month)) {
+      acc[key].months.push(p.month);
+    }
+    
+    if (p.payment_type === 'اشتراك') {
+      acc[key].total_subscription += Number(p.amount) || 0;
+    } else if (p.payment_type === 'مساهمة') {
+      acc[key].total_contribution += Number(p.amount) || 0;
+    }
+    
+    if (new Date(p.payment_date) > new Date(acc[key].latest_payment_date)) {
+      acc[key].latest_payment_date = p.payment_date;
+    }
     
     if (p.notes && !acc[key].notes.includes(p.notes)) {
       acc[key].notes.push(p.notes);
     }
+    
+    acc[key].payments.push(p);
     return acc;
   }, {})).sort((a, b) => a.member_name.localeCompare(b.member_name));
 
@@ -353,16 +368,22 @@ export default function PaymentsPage() {
                 {filteredGroupedPayments.map((group, idx) => {
                   let statusLabel = '';
                   let statusClass = '';
-                  if (group.subscription && group.contribution) {
+                  
+                  if (group.total_subscription > 0 && group.total_contribution > 0) {
                     statusLabel = 'اشتراك ومساهمة';
-                    statusClass = 'badge-success'; // Maybe a new combined color or just success
-                  } else if (group.subscription) {
+                    statusClass = 'badge-success';
+                  } else if (group.total_subscription > 0) {
                     statusLabel = 'اشتراك فقط';
                     statusClass = 'badge-active';
-                  } else if (group.contribution) {
+                  } else if (group.total_contribution > 0) {
                     statusLabel = 'مساهمة فقط';
                     statusClass = 'badge-success';
                   }
+
+                  const sortedMonths = [...group.months].sort((a, b) => a - b);
+                  const monthDisplay = sortedMonths.length > 1 
+                    ? `مسدد لـ ${sortedMonths.length} أشهر (${sortedMonths.join(', ')})`
+                    : `شهر ${sortedMonths[0]} (${group.year})`;
 
                   return (
                     <tr key={group.key}>
@@ -370,66 +391,47 @@ export default function PaymentsPage() {
                       <td data-label="اسم العضو" style={{ fontWeight: 600 }}>{group.member_name}</td>
                       <td data-label="الشهر">
                         <span className="badge badge-info">
-                          شهر {group.month} ({group.year})
+                          {monthDisplay}
                         </span>
                       </td>
                       <td data-label="الاشتراك" style={{ fontWeight: 700, color: 'var(--success)' }}>
-                        {group.subscription ? `${group.subscription.amount.toLocaleString('en-US')} د.أ` : '—'}
+                        {group.total_subscription > 0 ? `${group.total_subscription.toLocaleString('en-US')} د.أ` : '—'}
                       </td>
-                      <td data-label="المساهمة" style={{ fontWeight: 700, color: (group.contribution && group.contribution.amount < 20) ? 'var(--danger)' : 'var(--success, #10b981)' }}>
-                        {group.contribution ? `${group.contribution.amount.toLocaleString('en-US')} د.أ` : '—'}
+                      <td data-label="المساهمة" style={{ fontWeight: 700, color: (group.total_contribution > 0 && group.total_contribution < 20) ? 'var(--danger)' : 'var(--success, #10b981)' }}>
+                        {group.total_contribution > 0 ? `${group.total_contribution.toLocaleString('en-US')} د.أ` : '—'}
                       </td>
                       <td data-label="الحالة">
                         <span className={`badge ${statusClass}`}>{statusLabel}</span>
                       </td>
-                      <td data-label="تاريخ الدفع">{group.payment_date ? group.payment_date.split('T')[0] : '—'}</td>
+                      <td data-label="تاريخ الدفع">{group.latest_payment_date ? group.latest_payment_date.split('T')[0] : '—'}</td>
                       <td data-label="ملاحظات" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={group.notes.join(' | ')}>
                         {group.notes.length > 0 ? group.notes.join(' | ') : '—'}
                       </td>
                       <td data-label="الإجراءات">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {group.subscription && (
-                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.75rem', minWidth: '45px', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>اشتراك:</span>
+                          {group.payments.sort((a,b) => b.month - a.month).map(p => (
+                            <div key={p.id} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.75rem', minWidth: '70px', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
+                                {p.payment_type} ({p.month}):
+                              </span>
                               <button
                                 className="btn btn-secondary btn-sm"
                                 style={{ padding: '2px 6px', fontSize: '0.8rem' }}
-                                onClick={() => openEditModal(group.subscription)}
-                                title="تعديل الاشتراك"
+                                onClick={() => openEditModal(p)}
+                                title={`تعديل ${p.payment_type}`}
                               >
                                 ✏️
                               </button>
                               <button
                                 className="btn btn-danger btn-sm"
                                 style={{ padding: '2px 6px', fontSize: '0.8rem' }}
-                                onClick={() => setDeleteConfirm(group.subscription)}
-                                title="حذف الاشتراك"
+                                onClick={() => setDeleteConfirm(p)}
+                                title={`حذف ${p.payment_type}`}
                               >
                                 🗑️
                               </button>
                             </div>
-                          )}
-                          {group.contribution && (
-                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.75rem', minWidth: '45px', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>مساهمة:</span>
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                style={{ padding: '2px 6px', fontSize: '0.8rem' }}
-                                onClick={() => openEditModal(group.contribution)}
-                                title="تعديل المساهمة"
-                              >
-                                ✏️
-                              </button>
-                              <button
-                                className="btn btn-danger btn-sm"
-                                style={{ padding: '2px 6px', fontSize: '0.8rem' }}
-                                onClick={() => setDeleteConfirm(group.contribution)}
-                                title="حذف المساهمة"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          )}
+                          ))}
                         </div>
                       </td>
                     </tr>
