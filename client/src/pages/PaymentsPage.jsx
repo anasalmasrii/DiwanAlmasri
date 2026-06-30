@@ -20,6 +20,7 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
+  const [groupEditModal, setGroupEditModal] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast] = useState(null);
   const [formError, setFormError] = useState('');
@@ -408,31 +409,13 @@ export default function PaymentsPage() {
                         {group.notes.length > 0 ? group.notes.join(' | ') : '—'}
                       </td>
                       <td data-label="الإجراءات">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {group.payments.sort((a,b) => b.month - a.month).map(p => (
-                            <div key={p.id} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.75rem', minWidth: '70px', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
-                                {p.payment_type} ({p.month}):
-                              </span>
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                style={{ padding: '2px 6px', fontSize: '0.8rem' }}
-                                onClick={() => openEditModal(p)}
-                                title={`تعديل ${p.payment_type}`}
-                              >
-                                ✏️
-                              </button>
-                              <button
-                                className="btn btn-danger btn-sm"
-                                style={{ padding: '2px 6px', fontSize: '0.8rem' }}
-                                onClick={() => setDeleteConfirm(p)}
-                                title={`حذف ${p.payment_type}`}
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => setGroupEditModal(group)}
+                          style={{ width: '100%', padding: '6px' }}
+                        >
+                          ✏️ تفاصيل الدفعات
+                        </button>
                       </td>
                     </tr>
                   );
@@ -442,6 +425,59 @@ export default function PaymentsPage() {
           </div>
         )}
       </div>
+
+      {/* نافذة تفاصيل مجموعة الدفعات */}
+      {groupEditModal && (
+        <div className="modal-overlay" onClick={() => setGroupEditModal(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">تفاصيل دفعات {groupEditModal.member_name} ({groupEditModal.year})</h3>
+              <button className="modal-close" onClick={() => setGroupEditModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>النوع</th>
+                      <th>الشهر</th>
+                      <th>المبلغ</th>
+                      <th>التاريخ</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupEditModal.payments.sort((a,b) => b.month - a.month).map(p => (
+                      <tr key={p.id}>
+                        <td>{p.payment_type}</td>
+                        <td>شهر {p.month}</td>
+                        <td style={{ direction: 'ltr', textAlign: 'right' }}>{p.amount} د.أ</td>
+                        <td>{p.payment_date.split('T')[0]}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '5px' }}>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => { setGroupEditModal(null); openEditModal(p); }}
+                            >
+                              ✏️ تعديل
+                            </button>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => { setGroupEditModal(null); setDeleteConfirm(p); }}
+                            >
+                              🗑️ حذف
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* نافذة تسجيل دفعة جديدة */}
       {showModal && (
