@@ -1388,6 +1388,7 @@ input, select, textarea, button {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
+    max-width: none !important;
     height: auto !important;
     overflow: visible !important;
     background-color: white !important;
@@ -1397,8 +1398,9 @@ input, select, textarea, button {
   #printable-area {
     display: block !important;
     width: 100% !important;
-    margin: 0 auto !important;
-    padding: 10px 15px !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
   }
 
@@ -1426,11 +1428,15 @@ input, select, textarea, button {
     background-color: #f1f5f9 !important;
     color: #0f172a !important;
     border: 1px solid #cbd5e1 !important;
+    text-align: center !important;
+    padding: 8px !important;
   }
 
   .data-table td {
     border: 1px solid #cbd5e1 !important;
     color: #0f172a !important;
+    text-align: center !important;
+    padding: 8px !important;
   }
 
   .badge {
