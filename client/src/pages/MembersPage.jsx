@@ -190,15 +190,9 @@ export default function MembersPage() {
 
 
   const getStatusBadge = (member) => {
-    // مسدد: دفع اشتراك الشهر الحالي
     if (member.payment_status === 'paid') {
       return <span className="badge badge-active">🟢 مسدد</span>;
     }
-    // متخلف للاشتراك: عنده اشتراكات متراكمة (حتى لو دفع مساهمة)
-    if (member.months_owed > 0) {
-      return <span className="badge badge-inactive">🔴 متخلف للاشتراك</span>;
-    }
-    // بعد الموعد ولم يسدد
     if (isAfterDeadline) {
       return <span className="badge badge-inactive">🔴 متخلف</span>;
     }
