@@ -161,7 +161,7 @@ export default function ReportsPage() {
               <div className="rsb-label">متأخرون</div>
             </div>
           </div>
-          <table className="print-table">
+          <table className="data-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -278,7 +278,7 @@ export default function ReportsPage() {
               <div className="rsb-label">الإجمالي الكلي</div>
             </div>
           </div>
-          <table className="print-table">
+          <table className="data-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -329,7 +329,7 @@ export default function ReportsPage() {
               <div className="rsb-label">إجمالي المصاريف</div>
             </div>
           </div>
-          <table className="print-table">
+          <table className="data-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -406,7 +406,7 @@ export default function ReportsPage() {
               <h4 style={{ marginTop: '24px', marginBottom: '12px', borderBottom: '2px solid #e5e7eb', paddingBottom: '8px', color: '#374151' }}>
                 🛠️ تفاصيل المصاريف
               </h4>
-              <table className="print-table">
+              <table className="data-table">
                 <thead>
                   <tr><th>#</th><th>البيان</th><th>التصنيف</th><th>التاريخ</th><th>المبلغ</th></tr>
                 </thead>
@@ -538,7 +538,7 @@ export default function ReportsPage() {
           </div>
 
           {reportType === 'members' && (
-            <div style={{ padding: '12px 24px', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+            <div className="no-print" style={{ padding: '12px 24px', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
               <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>⚙️ إظهار الأعمدة:</strong>
               {[
                 { key: 'national_id', label: 'الرقم الوطني' },

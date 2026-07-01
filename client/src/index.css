@@ -1378,7 +1378,7 @@ input, select, textarea, button {
   /* إخفاء عناصر واجهة المستخدم غير الضرورية */
   .sidebar, .sidebar-overlay, header, .page-header, 
   .card:not(#report-preview), .card-header, 
-  .hamburger, .header-actions {
+  .hamburger, .header-actions, .no-print {
     display: none !important;
   }
 
