@@ -1422,6 +1422,13 @@ input, select, textarea, button {
     margin-bottom: 20px !important;
     border-bottom: 2px solid #e2e8f0;
     padding-bottom: 15px;
+    padding-right: 4mm !important;
+    padding-left: 4mm !important;
+  }
+
+  .report-content {
+    padding-right: 4mm !important;
+    padding-left: 4mm !important;
   }
 
   .data-table {
@@ -1456,6 +1463,6 @@ input, select, textarea, button {
   
   @page {
     size: A4;
-    margin: 15mm;
+    margin: 20mm 15mm;
   }
 }
