@@ -11,7 +11,15 @@ import { arabicMonths } from '../components/Header';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import ar from 'date-fns/locale/ar-SA';
-registerLocale('ar', ar);
+
+const customAr = { ...ar };
+const originalMonth = customAr.localize.month;
+customAr.localize.month = function() {
+  const monthName = originalMonth.apply(this, arguments);
+  const monthIndex = arguments[0];
+  return `${monthName} (${monthIndex + 1})`;
+};
+registerLocale('ar', customAr);
 
 export default function PaymentsPage() {
   const { apiFetch } = useAuth();
