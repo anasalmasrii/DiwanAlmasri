@@ -1387,8 +1387,7 @@ input, select, textarea, button {
     display: block !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: max-content !important;
-    min-width: 100% !important;
+    width: 100% !important;
     max-width: none !important;
     height: auto !important;
     overflow: visible !important;
@@ -1398,11 +1397,10 @@ input, select, textarea, button {
   /* تنسيق منطقة الطباعة نفسها */
   #printable-area {
     display: block !important;
-    width: max-content !important;
-    min-width: 100% !important;
+    width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
-    padding: 30px 40px !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
   }
 
