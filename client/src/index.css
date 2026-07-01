@@ -1398,7 +1398,7 @@ input, select, textarea, button {
     display: block !important;
     width: 100% !important;
     margin: 0 auto !important;
-    padding: 15px !important;
+    padding: 10px 15px !important;
     box-sizing: border-box !important;
   }
 
@@ -1442,7 +1442,7 @@ input, select, textarea, button {
   }
   
   @page {
-    size: A4 landscape;
-    margin: 15mm;
+    size: A4;
+    margin: 10mm;
   }
 }
