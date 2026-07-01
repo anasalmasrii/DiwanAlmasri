@@ -448,14 +448,14 @@ input, select, textarea, button {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .data-table th {
-  padding: 9px 8px;
+  padding: 7px 8px;
   text-align: right;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -465,9 +465,9 @@ input, select, textarea, button {
 }
 
 .data-table td {
-  padding: 9px 8px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-primary);
   white-space: nowrap;
 }
