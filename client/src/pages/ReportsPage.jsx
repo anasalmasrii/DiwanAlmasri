@@ -28,6 +28,15 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [generated, setGenerated] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState({
+    national_id: true,
+    phone_number: true,
+    join_date: true,
+    subscriptions: true,
+    contributions: true,
+    months_owed: true,
+    status: true,
+  });
 
   const years = [];
   for (let y = 2020; y <= now.getFullYear() + 1; y++) years.push(y);
@@ -157,22 +166,22 @@ export default function ReportsPage() {
               <tr>
                 <th>#</th>
                 <th>اسم العضو</th>
-                <th>الرقم الوطني</th>
-                <th>رقم الهاتف</th>
-                <th>تاريخ الانضمام</th>
+                {visibleColumns.national_id && <th>الرقم الوطني</th>}
+                {visibleColumns.phone_number && <th>رقم الهاتف</th>}
+                {visibleColumns.join_date && <th>تاريخ الانضمام</th>}
                 {filterStatus === 'paid' ? (
                   <>
-                    <th>الاشتراكات المدفوعة (للسنة)</th>
-                    <th>الأشهر المدفوعة</th>
+                    {visibleColumns.subscriptions && <th>الاشتراكات المدفوعة (للسنة)</th>}
+                    {visibleColumns.months_owed && <th>الأشهر المدفوعة</th>}
                   </>
                 ) : (
                   <>
-                    <th>إجمالي الاشتراكات</th>
-                    {filterStatus === 'unpaid' ? <th>المبلغ المطلوب</th> : <th>إجمالي المساهمات</th>}
-                    <th>الأشهر المتراكمة</th>
+                    {visibleColumns.subscriptions && <th>إجمالي الاشتراكات</th>}
+                    {visibleColumns.contributions && (filterStatus === 'unpaid' ? <th>المبلغ المطلوب</th> : <th>إجمالي المساهمات</th>)}
+                    {visibleColumns.months_owed && <th>الأشهر المتراكمة</th>}
                   </>
                 )}
-                <th>الحالة</th>
+                {visibleColumns.status && <th>الحالة</th>}
               </tr>
             </thead>
             <tbody>
@@ -182,41 +191,51 @@ export default function ReportsPage() {
                 <tr key={m.id} className={!isPaid ? 'row-danger' : ''}>
                   <td>{i + 1}</td>
                   <td style={{ fontWeight: 600 }}>{m.full_name}</td>
-                  <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.national_id || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.phone_number || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
+                  {visibleColumns.national_id && <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.national_id || '—'}</td>}
+                  {visibleColumns.phone_number && <td style={{ whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>{m.phone_number || '—'}</td>}
+                  {visibleColumns.join_date && <td style={{ whiteSpace: 'nowrap' }}>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>}
                   
                   {filterStatus === 'paid' ? (
                     <>
-                      <td style={{ whiteSpace: 'nowrap', fontWeight: 700, color: '#10b981' }}>
-                        {(m.yearly_subscriptions || 0).toLocaleString('en-US')} د.أ
-                      </td>
-                      <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap', direction: 'ltr' }}>
-                        {m.paid_months ? `الأشهر (${formatPaidMonths(m.paid_months)})` : '—'}
-                      </td>
+                      {visibleColumns.subscriptions && (
+                        <td style={{ whiteSpace: 'nowrap', fontWeight: 700, color: '#10b981' }}>
+                          {(m.yearly_subscriptions || 0).toLocaleString('en-US')} د.أ
+                        </td>
+                      )}
+                      {visibleColumns.months_owed && (
+                        <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap', direction: 'ltr' }}>
+                          {m.paid_months ? `الأشهر (${formatPaidMonths(m.paid_months)})` : '—'}
+                        </td>
+                      )}
                     </>
                   ) : (
                     <>
-                      <td style={{ whiteSpace: 'nowrap' }}>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>
-                      {filterStatus === 'unpaid' ? (
-                        <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>{(Math.max(0, m.months_owed) * 3).toLocaleString('en-US')} د.أ</td>
-                      ) : (
-                        <td style={{ whiteSpace: 'nowrap' }}>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
+                      {visibleColumns.subscriptions && <td style={{ whiteSpace: 'nowrap' }}>{(m.total_subscriptions || 0).toLocaleString('en-US')} د.أ</td>}
+                      {visibleColumns.contributions && (
+                        filterStatus === 'unpaid' ? (
+                          <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>{(Math.max(0, m.months_owed) * 3).toLocaleString('en-US')} د.أ</td>
+                        ) : (
+                          <td style={{ whiteSpace: 'nowrap' }}>{(m.total_contributions || 0).toLocaleString('en-US')} د.أ</td>
+                        )
                       )}
-                      <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                        {Math.max(0, m.months_owed)} شهر
-                      </td>
+                      {visibleColumns.months_owed && (
+                        <td style={{ color: m.months_owed > 0 ? '#ef4444' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {Math.max(0, m.months_owed)} شهر
+                        </td>
+                      )}
                     </>
                   )}
-                  <td>
-                    <span style={{
-                      padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600,
-                      background: isPaid ? '#d1fae5' : '#fee2e2',
-                      color: isPaid ? '#065f46' : '#991b1b'
-                    }}>
-                      {isPaid ? 'مسدد' : 'متأخر'}
-                    </span>
-                  </td>
+                  {visibleColumns.status && (
+                    <td>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600,
+                        background: isPaid ? '#d1fae5' : '#fee2e2',
+                        color: isPaid ? '#065f46' : '#991b1b'
+                      }}>
+                        {isPaid ? 'مسدد' : 'متأخر'}
+                      </span>
+                    </td>
+                  )}
                 </tr>
                 );
               })}
@@ -517,6 +536,26 @@ export default function ReportsPage() {
               <button className="btn btn-primary btn-sm" onClick={handlePrint}>🖨️ طباعة</button>
             </div>
           </div>
+
+          {reportType === 'members' && (
+            <div style={{ padding: '12px 24px', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+              <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>⚙️ إظهار الأعمدة:</strong>
+              {[
+                { key: 'national_id', label: 'الرقم الوطني' },
+                { key: 'phone_number', label: 'رقم الهاتف' },
+                { key: 'join_date', label: 'تاريخ الانضمام' },
+                { key: 'subscriptions', label: 'الاشتراكات' },
+                { key: 'contributions', label: filterStatus === 'unpaid' ? 'المبلغ المطلوب' : 'المساهمات' },
+                { key: 'months_owed', label: filterStatus === 'paid' ? 'الأشهر المدفوعة' : 'الأشهر المتراكمة' },
+                { key: 'status', label: 'الحالة' }
+              ].map(col => (
+                <label key={col.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}>
+                  <input type="checkbox" checked={visibleColumns[col.key]} onChange={e => setVisibleColumns({...visibleColumns, [col.key]: e.target.checked})} />
+                  {col.label}
+                </label>
+              ))}
+            </div>
+          )}
 
           {/* محتوى الطباعة */}
           <div id="printable-area" style={{ padding: '0 24px 24px' }}>
