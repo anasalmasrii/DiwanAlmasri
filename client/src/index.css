@@ -1397,8 +1397,9 @@ input, select, textarea, button {
   #printable-area {
     display: block !important;
     width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 auto !important;
+    padding: 15px !important;
+    box-sizing: border-box !important;
   }
 
   body {
@@ -1441,7 +1442,7 @@ input, select, textarea, button {
   }
   
   @page {
-    size: A4;
-    margin: 1cm;
+    size: A4 landscape;
+    margin: 15mm;
   }
 }
