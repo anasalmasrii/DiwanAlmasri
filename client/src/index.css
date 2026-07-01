@@ -1424,19 +1424,26 @@ input, select, textarea, button {
     padding-bottom: 15px;
   }
 
+  .data-table {
+    width: 100% !important;
+    border: none !important;
+  }
+
   .data-table th {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
-    border: 1px solid #cbd5e1 !important;
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-bottom: 2px solid #cbd5e1 !important;
     text-align: center !important;
-    padding: 8px !important;
+    padding: 12px 8px !important;
   }
 
   .data-table td {
-    border: 1px solid #cbd5e1 !important;
+    border: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
     color: #0f172a !important;
     text-align: center !important;
-    padding: 8px !important;
+    padding: 10px 8px !important;
   }
 
   .badge {
@@ -1449,6 +1456,6 @@ input, select, textarea, button {
   
   @page {
     size: A4;
-    margin: 10mm;
+    margin: 15mm;
   }
 }
