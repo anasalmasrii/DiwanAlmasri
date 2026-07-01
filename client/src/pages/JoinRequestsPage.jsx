@@ -178,7 +178,7 @@ export default function JoinRequestsPage() {
                         <td data-label="الاسم الرباعي" style={{ fontWeight: 600 }}>{req.full_name}</td>
                         <td data-label="رقم الهاتف">{req.phone_number}</td>
                         <td data-label="الرقم الوطني">{req.national_id || '—'}</td>
-                        <td data-label="تاريخ الميلاد">{req.date_of_birth || '—'}</td>
+                        <td data-label="تاريخ الميلاد">{req.date_of_birth ? req.date_of_birth.split('T')[0] : '—'}</td>
                         <td data-label="المؤهل العلمي">{req.qualification || '—'}</td>
                         <td data-label="تاريخ الطلب">{req.created_at ? req.created_at.split('T')[0] : '—'}</td>
                         <td data-label="الإجراءات">
@@ -224,7 +224,7 @@ export default function JoinRequestsPage() {
                         <td data-label="الاسم الرباعي" style={{ fontWeight: 600 }}>{req.full_name}</td>
                         <td data-label="رقم الهاتف">{req.phone_number}</td>
                         <td data-label="الرقم الوطني">{req.national_id || '—'}</td>
-                        <td data-label="تاريخ الميلاد">{req.date_of_birth || '—'}</td>
+                        <td data-label="تاريخ الميلاد">{req.date_of_birth ? req.date_of_birth.split('T')[0] : '—'}</td>
                         <td data-label="المؤهل العلمي">{req.qualification || '—'}</td>
                         <td data-label="الحالة">
                           {req.status === 'merged' ? (
