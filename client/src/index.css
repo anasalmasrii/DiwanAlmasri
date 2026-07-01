@@ -1442,7 +1442,9 @@ input, select, textarea, button {
     border: none !important;
     border-bottom: 2px solid #cbd5e1 !important;
     text-align: center !important;
-    padding: 12px 8px !important;
+    padding: 7px 4px !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
   }
 
   .data-table td {
@@ -1450,7 +1452,9 @@ input, select, textarea, button {
     border-bottom: 1px solid #e2e8f0 !important;
     color: #0f172a !important;
     text-align: center !important;
-    padding: 10px 8px !important;
+    padding: 6px 4px !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
   }
 
   .badge {
@@ -1462,7 +1466,7 @@ input, select, textarea, button {
   }
   
   @page {
-    size: A4;
-    margin: 20mm 15mm;
+    size: A4 landscape;
+    margin: 12mm 10mm;
   }
 }
