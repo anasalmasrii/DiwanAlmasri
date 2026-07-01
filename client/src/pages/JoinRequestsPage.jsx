@@ -165,6 +165,8 @@ export default function JoinRequestsPage() {
                       <th>الاسم الرباعي</th>
                       <th>رقم الهاتف</th>
                       <th>الرقم الوطني</th>
+                      <th>تاريخ الميلاد</th>
+                      <th>المؤهل العلمي</th>
                       <th>تاريخ الطلب</th>
                       <th>الإجراءات</th>
                     </tr>
@@ -176,7 +178,9 @@ export default function JoinRequestsPage() {
                         <td data-label="الاسم الرباعي" style={{ fontWeight: 600 }}>{req.full_name}</td>
                         <td data-label="رقم الهاتف">{req.phone_number}</td>
                         <td data-label="الرقم الوطني">{req.national_id || '—'}</td>
-                        <td data-label="تاريخ الطلب">{req.request_date ? req.request_date.split('T')[0] : '—'}</td>
+                        <td data-label="تاريخ الميلاد">{req.date_of_birth || '—'}</td>
+                        <td data-label="المؤهل العلمي">{req.qualification || '—'}</td>
+                        <td data-label="تاريخ الطلب">{req.created_at ? req.created_at.split('T')[0] : '—'}</td>
                         <td data-label="الإجراءات">
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button className="btn btn-success btn-sm" onClick={() => handleApproveAffiliate(req.id)} disabled={actionLoading === req.id}>
@@ -207,6 +211,8 @@ export default function JoinRequestsPage() {
                       <th>الاسم الرباعي</th>
                       <th>رقم الهاتف</th>
                       <th>الرقم الوطني</th>
+                      <th>تاريخ الميلاد</th>
+                      <th>المؤهل العلمي</th>
                       <th>الحالة</th>
                       <th>الإجراءات</th>
                     </tr>
@@ -218,6 +224,8 @@ export default function JoinRequestsPage() {
                         <td data-label="الاسم الرباعي" style={{ fontWeight: 600 }}>{req.full_name}</td>
                         <td data-label="رقم الهاتف">{req.phone_number}</td>
                         <td data-label="الرقم الوطني">{req.national_id || '—'}</td>
+                        <td data-label="تاريخ الميلاد">{req.date_of_birth || '—'}</td>
+                        <td data-label="المؤهل العلمي">{req.qualification || '—'}</td>
                         <td data-label="الحالة">
                           {req.status === 'merged' ? (
                             <span className="badge badge-success" style={{ backgroundColor: '#10b981', color: 'white' }}>مُضاف للنظام 🏢</span>
