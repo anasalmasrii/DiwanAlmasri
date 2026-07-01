@@ -451,7 +451,7 @@ input, select, textarea, button {
 }
 
 .data-table th {
-  padding: 14px 16px;
+  padding: 10px 12px;
   text-align: right;
   font-weight: 600;
   font-size: 0.8rem;
@@ -464,7 +464,7 @@ input, select, textarea, button {
 }
 
 .data-table td {
-  padding: 14px 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   font-size: 0.9rem;
   color: var(--text-primary);
