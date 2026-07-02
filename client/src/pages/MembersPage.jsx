@@ -334,11 +334,12 @@ export default function MembersPage() {
                 {members.map((member, idx) => (
                   <tr key={member.id}>
                     <td data-label="#" style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
-                    <td data-label="الاسم">
+                    <td data-label="الاسم" style={{ maxWidth: '220px' }}>
                       <div 
                         className="member-name-link"
                         onClick={() => navigate('/payments', { state: { memberId: member.id } })}
                         title="عرض سجل الدفعات"
+                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                       >
                         {member.full_name}
                       </div>
