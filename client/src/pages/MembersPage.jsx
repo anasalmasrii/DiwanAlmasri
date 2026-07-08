@@ -133,25 +133,34 @@ export default function MembersPage() {
     e.preventDefault();
     try {
       if (editingMember) {
-        await apiFetch(`/api/members/${editingMember.id}`, {
+        const res = await apiFetch(`/api/members/${editingMember.id}`, {
           method: 'PUT',
           body: JSON.stringify(form),
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'فشل تعديل البيانات');
+        }
         showToast('تم تعديل بيانات العضو بنجاح');
       } else {
-        await apiFetch('/api/members', {
+        const res = await apiFetch('/api/members', {
           method: 'POST',
           body: JSON.stringify(form),
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'فشل إضافة العضو');
+        }
         showToast('تم إضافة العضو بنجاح');
       }
       setShowModal(false);
       resetForm();
       loadMembers();
     } catch (err) {
-      showToast('حدث خطأ أثناء الحفظ', 'error');
+      showToast(err.message || 'حدث خطأ أثناء الحفظ', 'error');
     }
   };
+
 
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
