@@ -105,7 +105,7 @@ router.put('/:id', async (req, res) => {
     }
 
     await db.run(
-      'UPDATE members SET full_name = ?, national_id = ?, date_of_birth = ?, phone_number = ?, qualification = ?, join_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      `UPDATE members SET full_name = ?, national_id = ?, date_of_birth = ?, phone_number = ?, qualification = ?, join_date = ? WHERE id = ?`,
       [
         full_name || existing.full_name,
         national_id !== undefined ? national_id : existing.national_id,
