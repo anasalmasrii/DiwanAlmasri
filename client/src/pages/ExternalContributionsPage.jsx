@@ -194,7 +194,7 @@ export default function ExternalContributionsPage() {
                   <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
                   <td style={{ fontWeight: 600 }}>{c.contributor_name}</td>
                   <td style={{ fontWeight: 700, color: 'var(--accent)' }}>{c.amount} د.أ</td>
-                  <td>{c.contribution_date}</td>
+                  <td>{c.contribution_date ? c.contribution_date.split('T')[0] : '—'}</td>
                   <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{c.notes || '—'}</td>
                   <td>
                     <div className="action-buttons">
