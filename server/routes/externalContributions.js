@@ -24,13 +24,22 @@ router.get('/', async (req, res) => {
       conditions.push("contributor_name LIKE ?");
       params.push(`%${q}%`);
     }
-    if (month && year) {
-      conditions.push("strftime('%m', contribution_date) = ? AND strftime('%Y', contribution_date) = ?");
-      params.push(String(parseInt(month)).padStart(2, '0'), String(parseInt(year)));
+
+    if (year && month) {
+      const y = parseInt(year);
+      const m = parseInt(month);
+      const start = `${y}-${String(m).padStart(2, '0')}-01`;
+      const nextMonth = m === 12 ? 1 : m + 1;
+      const nextYear = m === 12 ? y + 1 : y;
+      const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+      conditions.push("contribution_date >= ? AND contribution_date < ?");
+      params.push(start, end);
     } else if (year) {
-      conditions.push("strftime('%Y', contribution_date) = ?");
-      params.push(String(parseInt(year)));
+      const y = parseInt(year);
+      conditions.push("contribution_date >= ? AND contribution_date < ?");
+      params.push(`${y}-01-01`, `${y + 1}-01-01`);
     }
+
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
@@ -55,12 +64,19 @@ router.get('/total', async (req, res) => {
     const params = [];
     const conditions = [];
 
-    if (month && year) {
-      conditions.push("strftime('%m', contribution_date) = ? AND strftime('%Y', contribution_date) = ?");
-      params.push(String(parseInt(month)).padStart(2, '0'), String(parseInt(year)));
+    if (year && month) {
+      const y = parseInt(year);
+      const m = parseInt(month);
+      const start = `${y}-${String(m).padStart(2, '0')}-01`;
+      const nextMonth = m === 12 ? 1 : m + 1;
+      const nextYear = m === 12 ? y + 1 : y;
+      const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+      conditions.push("contribution_date >= ? AND contribution_date < ?");
+      params.push(start, end);
     } else if (year) {
-      conditions.push("strftime('%Y', contribution_date) = ?");
-      params.push(String(parseInt(year)));
+      const y = parseInt(year);
+      conditions.push("contribution_date >= ? AND contribution_date < ?");
+      params.push(`${y}-01-01`, `${y + 1}-01-01`);
     }
     if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
 
