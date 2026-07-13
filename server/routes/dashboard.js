@@ -41,6 +41,11 @@ router.get('/', async (req, res) => {
     const expensesResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM expenses");
     const totalExpenses = expensesResult ? parseFloat(expensesResult.total) : 0;
 
+    // إجمالي المساهمات الخارجية الكلية
+    const extContribResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM external_contributions");
+    const totalExternalContributions = extContribResult ? parseFloat(extContribResult.total) : 0;
+    const externalContributorsCount = extContribResult ? parseInt(extContribResult.count, 10) : 0;
+
     let monthlyRevenueSubscriptions = 0;
     let monthlyRevenueContributions = 0;
     let paidSubscriptionsCount = 0;
@@ -122,7 +127,9 @@ router.get('/', async (req, res) => {
       monthlyRevenueContributions,
       totalTreasury,
       totalExpenses,
-      netTreasury: totalTreasury - totalExpenses,
+      totalExternalContributions,
+      externalContributorsCount,
+      netTreasury: totalTreasury + totalExternalContributions - totalExpenses,
       paidSubscriptionsCount,
       paidContributionsCount,
       unpaidCount,

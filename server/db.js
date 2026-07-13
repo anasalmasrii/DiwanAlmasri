@@ -100,6 +100,17 @@ export async function initDatabase() {
     `);
 
     await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS external_contributions (
+        id SERIAL PRIMARY KEY,
+        contributor_name VARCHAR(255) NOT NULL,
+        amount REAL NOT NULL,
+        contribution_date DATE NOT NULL,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pgPool.query(`
       CREATE TABLE IF NOT EXISTS join_requests (
         id SERIAL PRIMARY KEY,
         full_name VARCHAR(255) NOT NULL,
@@ -194,6 +205,17 @@ export async function initDatabase() {
       month INTEGER NOT NULL,
       year INTEGER NOT NULL,
       category TEXT DEFAULT 'عام',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  sqliteDb.run(`
+    CREATE TABLE IF NOT EXISTS external_contributions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      contributor_name TEXT NOT NULL,
+      amount REAL NOT NULL,
+      contribution_date DATE NOT NULL,
+      notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);

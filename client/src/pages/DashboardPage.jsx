@@ -112,6 +112,15 @@ export default function DashboardPage() {
             suffix="د.أ"
           />
         </Link>
+        <Link to="/external-contributions" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="🤝"
+            value={stats.totalExternalContributions ?? 0}
+            label={`مساهمات خارج الأعضاء (${stats.externalContributorsCount ?? 0} مساهم)`}
+            color="green"
+            suffix="د.أ"
+          />
+        </Link>
         <Link to="/members" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
           <StatCard
             icon="👥"

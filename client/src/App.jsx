@@ -16,6 +16,7 @@ import DefaultersPage from './pages/DefaultersPage';
 import SettingsPage from './pages/SettingsPage';
 import ExpensesPage from './pages/ExpensesPage';
 import ReportsPage from './pages/ReportsPage';
+import ExternalContributionsPage from './pages/ExternalContributionsPage';
 import { useState } from 'react';
 
 function ProtectedRoute({ children, permission }) {
@@ -125,6 +126,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <AppLayout><JoinRequestsPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/external-contributions"
+        element={
+          <ProtectedRoute permission="members">
+            <AppLayout><ExternalContributionsPage /></AppLayout>
           </ProtectedRoute>
         }
       />
