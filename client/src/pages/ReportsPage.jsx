@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 const REPORT_TYPES = [
   { id: 'members', label: '👥 تقرير الأعضاء', description: 'قائمة بجميع الأعضاء وحالة سداداتهم' },
   { id: 'payments', label: '💰 تقرير الاشتراكات والدفعات', description: 'سجل الدفعات لشهر أو سنة محددة' },
+  { id: 'defaulters', label: '⚠️ تقرير المتخلفين عن السداد', description: 'قائمة الأعضاء الذين لم يسددوا اشتراك شهر محدد' },
   { id: 'expenses', label: '🛠️ تقرير المصاريف والصيانة', description: 'سجل مصاريف الديوان' },
   { id: 'summary', label: '📊 تقرير ملخص مالي', description: 'ملخص شامل للإيرادات والمصاريف والصافي' },
 ];
@@ -75,6 +76,12 @@ export default function ReportsPage() {
         const res = await apiFetch(url);
         const expenses = await res.json();
         data = { expenses, month: filterMonth, year: filterYear };
+
+      } else if (reportType === 'defaulters') {
+        const params = filterMonth ? `month=${filterMonth}&year=${filterYear}` : `month=all`;
+        const res = await apiFetch(`/api/dashboard/defaulters?${params}`);
+        const result = await res.json();
+        data = { defaulters: result.defaulters || [], month: filterMonth, year: filterYear };
 
       } else if (reportType === 'summary') {
         const [dashRes, expRes] = await Promise.all([
@@ -357,6 +364,70 @@ export default function ReportsPage() {
               </tr>
             </tbody>
           </table>
+        </div>
+      );
+    }
+
+    if (reportType === 'defaulters') {
+      const { defaulters, month, year } = reportData;
+      const totalOwed = (defaulters || []).length * 3;
+      return (
+        <div className="report-content">
+          <div className="report-summary-row">
+            <div className="report-summary-box red">
+              <div className="rsb-val">{(defaulters || []).length}</div>
+              <div className="rsb-label">عدد المتخلفين</div>
+            </div>
+            <div className="report-summary-box red">
+              <div className="rsb-val">{totalOwed.toLocaleString('en-US')} د.أ</div>
+              <div className="rsb-label">إجمالي المبالغ المتراكمة</div>
+            </div>
+            <div className="report-summary-box">
+              <div className="rsb-val">{month ? `شهر ${month} / ${year}` : `${year}`}</div>
+              <div className="rsb-label">الفترة</div>
+            </div>
+          </div>
+          {(defaulters || []).length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--success)', fontWeight: 700, fontSize: '1.1rem' }}>
+              ✅ لا يوجد متخلفون عن السداد لهذا الشهر
+            </div>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>اسم العضو</th>
+                  <th>الرقم الوطني</th>
+                  <th>رقم الهاتف</th>
+                  <th>تاريخ الانضمام</th>
+                  <th>المبلغ المطلوب</th>
+                  <th>الحالة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(defaulters || []).map((m, i) => (
+                  <tr key={m.id} style={{ background: i % 2 === 0 ? '' : 'rgba(239,68,68,0.03)' }}>
+                    <td>{i + 1}</td>
+                    <td style={{ fontWeight: 700 }}>{m.full_name}</td>
+                    <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.national_id || '—'}</td>
+                    <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.phone_number || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
+                    <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>3 د.أ</td>
+                    <td>
+                      <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>
+                        لم يسدد
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                <tr style={{ fontWeight: 800, borderTop: '2px solid #ef4444' }}>
+                  <td colSpan="5" style={{ textAlign: 'center', color: '#ef4444' }}>الإجمالي</td>
+                  <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalOwed.toLocaleString('en-US')} د.أ</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          )}
         </div>
       );
     }
