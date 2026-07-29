@@ -152,6 +152,12 @@ export default function ReportsPage() {
     if (reportType === 'members') {
       const { members } = reportData;
       const active = members.filter(m => m.status === 'active').length;
+      const unpaidMembers = members.filter(m => filterMonth ? (m.payment_status !== 'paid') : ((m.yearly_subscriptions || 0) <= 0));
+      const paidMembers = members.filter(m => filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0));
+      // مجموع الاشتراكات الغير مسددة = عدد المتأخرين × 3 د.أ (للشهر المحدد) أو مجموع الأشهر المتراكمة × 3
+      const totalUnpaidAmount = filterMonth
+        ? unpaidMembers.length * 3
+        : members.reduce((s, m) => s + (Math.max(0, m.months_owed || 0) * 3), 0);
       return (
         <div className="report-content">
           <div className="report-summary-row">
@@ -160,12 +166,16 @@ export default function ReportsPage() {
               <div className="rsb-label">إجمالي الأعضاء</div>
             </div>
             <div className="report-summary-box green">
-              <div className="rsb-val">{members.filter(m => filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0)).length}</div>
+              <div className="rsb-val">{paidMembers.length}</div>
               <div className="rsb-label">مسددون</div>
             </div>
             <div className="report-summary-box red">
-              <div className="rsb-val">{members.filter(m => filterMonth ? (m.payment_status !== 'paid') : ((m.yearly_subscriptions || 0) <= 0)).length}</div>
+              <div className="rsb-val">{unpaidMembers.length}</div>
               <div className="rsb-label">متأخرون</div>
+            </div>
+            <div className="report-summary-box red">
+              <div className="rsb-val">{totalUnpaidAmount.toLocaleString('en-US')} د.أ</div>
+              <div className="rsb-label">مجموع الاشتراكات الغير مسددة</div>
             </div>
           </div>
           <table className="data-table">
