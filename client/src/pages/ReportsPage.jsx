@@ -264,17 +264,26 @@ export default function ReportsPage() {
 
     if (reportType === 'payments') {
       const { payments, month, year } = reportData;
-      // Group payments by member
+      // Group payments by member+month+year — accumulate multiple contributions
       const grouped = {};
       (payments || []).forEach(p => {
         const key = `${p.member_id}_${p.month}_${p.year}`;
-        if (!grouped[key]) grouped[key] = { member_name: p.member_name, month: p.month, year: p.year, subscription: null, contribution: null };
-        if (p.payment_type === 'اشتراك') grouped[key].subscription = p;
-        else if (p.payment_type === 'مساهمة') grouped[key].contribution = p;
+        if (!grouped[key]) grouped[key] = {
+          member_name: p.member_name, month: p.month, year: p.year,
+          subscription: null, contribution_total: 0,
+          contribution_dates: [], sub_date: null,
+        };
+        if (p.payment_type === '\u0627\u0634\u062a\u0631\u0627\u0643') {
+          grouped[key].subscription = p;
+          grouped[key].sub_date = p.payment_date;
+        } else if (p.payment_type === '\u0645\u0633\u0627\u0647\u0645\u0629') {
+          grouped[key].contribution_total += parseFloat(p.amount || 0);
+          if (p.payment_date) grouped[key].contribution_dates.push(p.payment_date.split('T')[0]);
+        }
       });
       const rows = Object.values(grouped);
       const totalSub = rows.reduce((s, r) => s + (r.subscription?.amount || 0), 0);
-      const totalCon = rows.reduce((s, r) => s + (r.contribution?.amount || 0), 0);
+      const totalCon = rows.reduce((s, r) => s + (r.contribution_total || 0), 0);
       return (
         <div className="report-content">
           <div className="report-summary-row">
@@ -317,11 +326,15 @@ export default function ReportsPage() {
                     {row.subscription ? `${row.subscription.amount.toLocaleString('en-US')} د.أ` : '—'}
                   </td>
                   <td style={{ color: '#10b981', fontWeight: 700 }}>
-                    {row.contribution ? `${row.contribution.amount.toLocaleString('en-US')} د.أ` : '—'}
+                    {row.contribution_total > 0 ? `${row.contribution_total.toLocaleString('en-US')} د.أ` : '—'}
                   </td>
-                  <td>{(row.subscription?.payment_date || row.contribution?.payment_date || '—').split('T')[0]}</td>
+                  <td style={{ fontSize: '0.82rem' }}>
+                    {row.sub_date ? row.sub_date.split('T')[0] : ''}
+                    {row.contribution_dates.length > 0 ? (row.sub_date ? ' | ' : '') + row.contribution_dates.join(' ، ') : ''}
+                    {!row.sub_date && row.contribution_dates.length === 0 ? '—' : ''}
+                  </td>
                   <td style={{ fontSize: '0.8rem' }}>
-                    {[row.subscription?.notes, row.contribution?.notes].filter(Boolean).join(' | ') || '—'}
+                    {row.subscription?.notes || '—'}
                   </td>
                 </tr>
               ))}
