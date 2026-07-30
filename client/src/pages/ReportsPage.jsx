@@ -439,10 +439,10 @@ export default function ReportsPage() {
         </div>
       );
     }
-
     if (reportType === 'defaulters') {
       const { defaulters, month, year } = reportData;
       const totalOwed = (defaulters || []).length * 3;
+      const totalMonthsOwed = (defaulters || []).reduce((sum, m) => sum + Math.max(0, m.months_owed || 0), 0);
       return (
         <div className="report-content">
           <div className="report-summary-row">
@@ -452,7 +452,11 @@ export default function ReportsPage() {
             </div>
             <div className="report-summary-box red">
               <div className="rsb-val">{totalOwed.toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">إجمالي المبالغ المتراكمة</div>
+              <div className="rsb-label">إجمالي المبالغ المتراكمة (لهذا الشهر)</div>
+            </div>
+            <div className="report-summary-box red">
+              <div className="rsb-val">{totalMonthsOwed}</div>
+              <div className="rsb-label">إجمالي الأشهر المتراكمة</div>
             </div>
             <div className="report-summary-box">
               <div className="rsb-val">{month ? `شهر ${month} / ${year}` : `${year}`}</div>
@@ -471,7 +475,7 @@ export default function ReportsPage() {
                   <th>اسم العضو</th>
                   <th>الرقم الوطني</th>
                   <th>رقم الهاتف</th>
-                  <th>تاريخ الانضمام</th>
+                  <th>الأشهر المتراكمة</th>
                   <th>المبلغ المطلوب</th>
                   <th>الحالة</th>
                 </tr>
@@ -483,7 +487,7 @@ export default function ReportsPage() {
                     <td style={{ fontWeight: 700 }}>{m.full_name}</td>
                     <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.national_id || '—'}</td>
                     <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.phone_number || '—'}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>{m.join_date ? m.join_date.split('T')[0] : '—'}</td>
+                    <td style={{ fontWeight: 600 }}>{Math.max(0, m.months_owed || 0)} أشهر</td>
                     <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>3 د.أ</td>
                     <td>
                       <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>
@@ -492,8 +496,9 @@ export default function ReportsPage() {
                     </td>
                   </tr>
                 ))}
-                <tr style={{ fontWeight: 800, borderTop: '2px solid #ef4444' }}>
-                  <td colSpan="5" style={{ textAlign: 'center', color: '#ef4444' }}>الإجمالي</td>
+                <tr style={{ fontWeight: 800, borderTop: '2px solid #ef4444', background: 'var(--bg-glass)' }}>
+                  <td colSpan="4" style={{ textAlign: 'center', color: '#ef4444' }}>الإجمالي</td>
+                  <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalMonthsOwed} أشهر</td>
                   <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalOwed.toLocaleString('en-US')} د.أ</td>
                   <td></td>
                 </tr>
@@ -503,7 +508,6 @@ export default function ReportsPage() {
         </div>
       );
     }
-
     if (reportType === 'summary') {
       const { dash, expenses } = reportData;
       const totalExp    = (expenses || []).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
