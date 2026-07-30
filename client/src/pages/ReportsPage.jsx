@@ -457,67 +457,64 @@ export default function ReportsPage() {
 
     if (reportType === 'summary') {
       const { dash, expenses } = reportData;
-      const totalExp = (expenses || []).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+      const totalExp    = (expenses || []).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+      const monthSub    = dash?.monthlyRevenueSubscriptions || 0;
+      const monthCon    = dash?.monthlyRevenueContributions || 0;
+      const totalRevAll = dash?.totalTreasury || 0;
+      const extContrib  = dash?.totalExternalContributions || 0;
+      const netTreasury = dash?.netTreasury || 0;
+      const unpaidCount = dash?.unpaidCount || 0;
+      const unpaidTotal = unpaidCount * 3;
+
+      const tableRows = [
+        { label: `إيرادات الاشتراكات — شهر ${filterMonth || 'الكل'} / ${filterYear}`, amount: monthSub, type: 'income' },
+        { label: `إيرادات المساهمات — شهر ${filterMonth || 'الكل'} / ${filterYear}`, amount: monthCon, type: 'income' },
+        { label: 'إجمالي إيرادات الاشتراكات والمساهمات (كل الأوقات)', amount: totalRevAll, type: 'income' },
+        { label: `مساهمات من خارج الأعضاء (${dash?.externalContributorsCount || 0} مساهم)`, amount: extContrib, type: 'income' },
+        { label: 'إجمالي المصاريف والصيانة', amount: totalExp, type: 'expense' },
+        { label: `اشتراكات المتخلفين الغير مسددة (${unpaidCount} عضو × 3 د.أ)`, amount: unpaidTotal, type: 'unpaid' },
+        { label: 'صافي الصندوق (الإيرادات + الخارجية − المصاريف)', amount: netTreasury, type: netTreasury >= 0 ? 'net-pos' : 'net-neg', bold: true },
+      ];
+
+      const colorMap = {
+        'income':  { text: '#10b981', bg: '#d1fae5', fg: '#065f46', badge: 'إيراد' },
+        'expense': { text: '#ef4444', bg: '#fee2e2', fg: '#991b1b', badge: 'مصروف' },
+        'unpaid':  { text: '#f59e0b', bg: '#fef3c7', fg: '#92400e', badge: 'متأخر' },
+        'net-pos': { text: '#2563eb', bg: '#dbeafe', fg: '#1e40af', badge: 'صافي' },
+        'net-neg': { text: '#ef4444', bg: '#fee2e2', fg: '#991b1b', badge: 'صافي' },
+      };
+
       return (
         <div className="report-content">
-          <div className="report-summary-row" style={{ flexWrap: 'wrap' }}>
-            <div className="report-summary-box blue">
-              <div className="rsb-val">{(dash?.totalTreasury || 0).toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">إجمالي الإيرادات (كل الأوقات)</div>
-            </div>
-            <div className="report-summary-box green">
-              <div className="rsb-val">{(dash?.monthlyRevenueSubscriptions || 0).toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">إيرادات الاشتراكات (الشهر)</div>
-            </div>
-            <div className="report-summary-box" style={{ borderColor: '#10b981' }}>
-              <div className="rsb-val" style={{ color: '#10b981' }}>{(dash?.monthlyRevenueContributions || 0).toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">إيرادات المساهمات (الشهر)</div>
-            </div>
-            <div className="report-summary-box red">
-              <div className="rsb-val">{totalExp.toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">المصاريف والصيانة</div>
-            </div>
-            <div className="report-summary-box green">
-              <div className="rsb-val">{(dash?.netTreasury || 0).toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">صافي الصندوق</div>
-            </div>
-            <div className="report-summary-box">
-              <div className="rsb-val">{dash?.totalMembers || 0}</div>
-              <div className="rsb-label">إجمالي الأعضاء النشطين</div>
-            </div>
-            <div className="report-summary-box red">
-              <div className="rsb-val">{dash?.unpaidCount || 0}</div>
-              <div className="rsb-label">لم يسددوا بعد</div>
-            </div>
-            <div className="report-summary-box green">
-              <div className="rsb-val">{dash?.paidSubscriptionsCount || 0}</div>
-              <div className="rsb-label">المسددون للاشتراك</div>
-            </div>
-          </div>
-
-          {expenses && expenses.length > 0 && (
-            <>
-              <h4 style={{ marginTop: '24px', marginBottom: '12px', borderBottom: '2px solid #e5e7eb', paddingBottom: '8px', color: '#374151' }}>
-                🛠️ تفاصيل المصاريف
-              </h4>
-              <table className="data-table">
-                <thead>
-                  <tr><th>#</th><th>البيان</th><th>التصنيف</th><th>التاريخ</th><th>المبلغ</th></tr>
-                </thead>
-                <tbody>
-                  {expenses.map((e, i) => (
-                    <tr key={e.id}>
-                      <td>{i + 1}</td>
-                      <td>{e.description}</td>
-                      <td>{e.category || 'عام'}</td>
-                      <td>{(e.expense_date || '').split('T')[0]}</td>
-                      <td style={{ color: '#ef4444', fontWeight: 700 }}>{parseFloat(e.amount).toLocaleString('en-US')} د.أ</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
+          <table className="data-table" style={{ marginTop: '8px' }}>
+            <thead>
+              <tr>
+                <th style={{ width: '36px' }}>#</th>
+                <th>البيان</th>
+                <th style={{ width: '150px', textAlign: 'center' }}>المبلغ (د.أ)</th>
+                <th style={{ width: '90px', textAlign: 'center' }}>النوع</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableRows.map((r, i) => {
+                const c = colorMap[r.type];
+                return (
+                  <tr key={i} style={{ borderTop: r.bold ? '3px double #374151' : undefined, fontWeight: r.bold ? 800 : 500 }}>
+                    <td style={{ color: 'var(--text-muted)' }}>{i + 1}</td>
+                    <td>{r.label}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: c.text, fontSize: r.bold ? '1.05rem' : undefined }}>
+                      {(r.type === 'expense' || r.type === 'net-neg') ? '−' : '+'}{Math.abs(r.amount).toLocaleString('en-US')}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 600, background: c.bg, color: c.fg }}>
+                        {c.badge}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       );
     }
