@@ -45,6 +45,7 @@ export default function ReportsPage() {
     amount_required: true,
     status: true,
   });
+  const [excludedIds, setExcludedIds] = useState([]);
   const [summaryOptions, setSummaryOptions] = useState({
     showExpenses: false,
     showDefaulters: false,
@@ -56,6 +57,7 @@ export default function ReportsPage() {
   const generateReport = async () => {
     setLoading(true);
     setGenerated(false);
+    setExcludedIds([]);
     try {
       let data = {};
 
@@ -161,7 +163,8 @@ export default function ReportsPage() {
     }
 
     if (reportType === 'members') {
-      const { members } = reportData;
+      const allMembers = reportData.members || [];
+      const members = allMembers.filter(m => !excludedIds.includes(m.id));
       const active = members.filter(m => m.status === 'active').length;
       const unpaidMembers = members.filter(m => filterMonth ? (m.payment_status !== 'paid') : ((m.yearly_subscriptions || 0) <= 0));
       const paidMembers = members.filter(m => filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0));
@@ -210,6 +213,7 @@ export default function ReportsPage() {
                   </>
                 )}
                 {visibleColumns.status && <th>الحالة</th>}
+                <th className="no-print" style={{ width: '60px', textAlign: 'center' }}>إجراء</th>
               </tr>
             </thead>
             <tbody>
@@ -264,6 +268,15 @@ export default function ReportsPage() {
                       </span>
                     </td>
                   )}
+                  <td className="no-print" style={{ textAlign: 'center' }}>
+                    <button
+                      onClick={() => setExcludedIds([...excludedIds, m.id])}
+                      style={{ padding: '2px 8px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #ef4444', color: '#ef4444', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}
+                      title="استبعاد من التقرير"
+                    >
+                      ❌ استبعاد
+                    </button>
+                  </td>
                 </tr>
                 );
               })}
@@ -281,6 +294,7 @@ export default function ReportsPage() {
       (payments || []).forEach(p => {
         const mid = p.member_id;
         if (!byMember[mid]) byMember[mid] = {
+          member_id: mid,
           member_name: p.member_name,
           sub_months: [],
           sub_total: 0,
@@ -334,15 +348,16 @@ export default function ReportsPage() {
       };
 
       const rows = Object.values(byMember).sort((a, b) => a.member_name.localeCompare(b.member_name, 'ar'));
-      const totalSub = rows.reduce((s, r) => s + r.sub_total, 0);
-      const totalCon = rows.reduce((s, r) => s + r.con_total, 0);
-      const totalConCount = rows.reduce((s, r) => s + r.con_count, 0);
+      const filteredRows = rows.filter(r => !excludedIds.includes(r.member_id));
+      const totalSub = filteredRows.reduce((s, r) => s + r.sub_total, 0);
+      const totalCon = filteredRows.reduce((s, r) => s + r.con_total, 0);
+      const totalConCount = filteredRows.reduce((s, r) => s + r.con_count, 0);
 
       return (
         <div className="report-content">
           <div className="report-summary-row">
             <div className="report-summary-box">
-              <div className="rsb-val">{rows.length}</div>
+              <div className="rsb-val">{filteredRows.length}</div>
               <div className="rsb-label">عدد الأعضاء</div>
             </div>
             <div className="report-summary-box green">
@@ -354,7 +369,7 @@ export default function ReportsPage() {
               <div className="rsb-label">إجمالي المساهمات ({totalConCount} مساهمة)</div>
             </div>
             <div className="report-summary-box blue">
-              <div className="rsb-val">{(totalSub + totalCon).toLocaleString('en-US')} د.أ</div>
+              <div className="rsb-val" style={{ color: '#3b82f6' }}>{(totalSub + totalCon).toLocaleString('en-US')} د.أ</div>
               <div className="rsb-label">الإجمالي الكلي</div>
             </div>
           </div>
@@ -367,10 +382,11 @@ export default function ReportsPage() {
                 <th>مجموع الاشتراكات</th>
                 <th>عدد المساهمات</th>
                 <th>مجموع المساهمات</th>
+                <th className="no-print" style={{ width: '60px', textAlign: 'center' }}>إجراء</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, i) => (
+              {filteredRows.map((row, i) => (
                 <tr key={i}>
                   <td>{i + 1}</td>
                   <td style={{ fontWeight: 700 }}>{row.member_name}</td>
@@ -386,6 +402,15 @@ export default function ReportsPage() {
                   <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
                     {row.con_total > 0 ? `${row.con_total.toLocaleString('en-US')} د.أ` : '—'}
                   </td>
+                  <td className="no-print" style={{ textAlign: 'center' }}>
+                    <button
+                      onClick={() => setExcludedIds([...excludedIds, row.member_id])}
+                      style={{ padding: '2px 8px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #ef4444', color: '#ef4444', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}
+                      title="استبعاد من التقرير"
+                    >
+                      ❌ استبعاد
+                    </button>
+                  </td>
                 </tr>
               ))}
               <tr style={{ fontWeight: 800, borderTop: '2px solid var(--border)', background: 'var(--bg-glass)' }}>
@@ -393,6 +418,7 @@ export default function ReportsPage() {
                 <td style={{ color: '#10b981', fontWeight: 800 }}>{totalSub.toLocaleString('en-US')} د.أ</td>
                 <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{totalConCount}</td>
                 <td style={{ color: '#10b981', fontWeight: 800 }}>{totalCon.toLocaleString('en-US')} د.أ</td>
+                <td className="no-print"></td>
               </tr>
             </tbody>
           </table>
@@ -447,7 +473,8 @@ export default function ReportsPage() {
       );
     }
     if (reportType === 'defaulters') {
-      const { defaulters, month, year } = reportData;
+      const { defaulters: allDefaulters, month, year } = reportData;
+      const defaulters = (allDefaulters || []).filter(m => !excludedIds.includes(m.id));
       const totalMonthsOwed = (defaulters || []).reduce((sum, m) => sum + Math.max(0, m.months_owed || 0), 0);
       const totalOwed = filterMonth ? (defaulters || []).length * 3 : totalMonthsOwed * 3;
       return (
@@ -481,6 +508,7 @@ export default function ReportsPage() {
                   {visibleDefaulterColumns.months_owed && <th>الأشهر المتراكمة</th>}
                   {visibleDefaulterColumns.amount_required && <th>المبلغ المطلوب</th>}
                   {visibleDefaulterColumns.status && <th>الحالة</th>}
+                  <th className="no-print" style={{ width: '60px', textAlign: 'center' }}>إجراء</th>
                 </tr>
               </thead>
               <tbody>
@@ -499,6 +527,15 @@ export default function ReportsPage() {
                         </span>
                       </td>
                     )}
+                    <td className="no-print" style={{ textAlign: 'center' }}>
+                      <button
+                        onClick={() => setExcludedIds([...excludedIds, m.id])}
+                        style={{ padding: '2px 8px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #ef4444', color: '#ef4444', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}
+                        title="استبعاد من التقرير"
+                      >
+                        ❌ استبعاد
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 <tr style={{ fontWeight: 800, borderTop: '2px solid #ef4444', background: 'var(--bg-glass)' }}>
@@ -509,6 +546,7 @@ export default function ReportsPage() {
                   {visibleDefaulterColumns.months_owed && <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalMonthsOwed} أشهر</td>}
                   {visibleDefaulterColumns.amount_required && <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalOwed.toLocaleString('en-US')} د.أ</td>}
                   {visibleDefaulterColumns.status && <td></td>}
+                  <td className="no-print"></td>
                 </tr>
               </tbody>
             </table>
@@ -788,6 +826,40 @@ export default function ReportsPage() {
             </div>
           )}
 
+          {excludedIds.length > 0 && (
+            <div className="no-print" style={{ padding: '12px 24px', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+              <strong style={{ fontSize: '0.9rem', color: '#ef4444' }}>⚠️ أسماء مستبعدة من التقرير:</strong>
+              {excludedIds.map(id => {
+                let name = "";
+                if (reportType === 'members') {
+                  name = (reportData.members || []).find(m => m.id === id)?.full_name;
+                } else if (reportType === 'payments') {
+                  name = (reportData.payments || []).find(p => p.member_id === id)?.member_name;
+                } else if (reportType === 'defaulters') {
+                  name = (reportData.defaulters || []).find(m => m.id === id)?.full_name;
+                }
+                return (
+                  <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', fontSize: '0.82rem', fontWeight: 600 }}>
+                    {name || "عضو"}
+                    <button
+                      onClick={() => setExcludedIds(excludedIds.filter(x => x !== id))}
+                      style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontWeight: 800, padding: 0 }}
+                      title="إعادة إدراج"
+                    >
+                      🔄
+                    </button>
+                  </span>
+                );
+              })}
+              <button
+                onClick={() => setExcludedIds([])}
+                style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-glass)', color: 'var(--text-primary)', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 600 }}
+              >
+                🔄 إعادة إدراج الجميع
+              </button>
+            </div>
+          )}
+
           {/* محتوى الطباعة */}
           <div id="printable-area" style={{ padding: '0 24px 24px' }}>
             {/* رأس التقرير للطباعة */}
@@ -873,8 +945,8 @@ export default function ReportsPage() {
           html, body { background: #ffffff !important; }
           body { padding: 1.5cm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-          /* Hide app layout elements */
-          .sidebar, .sidebar-overlay, .header, .page-header { display: none !important; }
+          /* Hide app layout and no-print elements */
+          .sidebar, .sidebar-overlay, .header, .page-header, .no-print { display: none !important; }
           
           /* Reset main layout */
           .app-layout { display: block !important; padding: 0 !important; margin: 0 !important; }
