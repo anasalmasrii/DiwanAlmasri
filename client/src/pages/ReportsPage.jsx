@@ -267,33 +267,63 @@ export default function ReportsPage() {
     }
 
     if (reportType === 'payments') {
-      const { payments, month, year } = reportData;
-      // Group payments by member+month+year — accumulate multiple contributions
-      const grouped = {};
+      const { payments } = reportData;
+
+      // تجميع بحسب العضو فقط — كل عضو سطر واحد
+      const byMember = {};
       (payments || []).forEach(p => {
-        const key = `${p.member_id}_${p.month}_${p.year}`;
-        if (!grouped[key]) grouped[key] = {
-          member_name: p.member_name, month: p.month, year: p.year,
-          subscription: null, contribution_total: 0,
-          contribution_dates: [], sub_date: null,
+        const mid = p.member_id;
+        if (!byMember[mid]) byMember[mid] = {
+          member_name: p.member_name,
+          sub_months: [],
+          sub_total: 0,
+          con_total: 0,
+          con_count: 0,
         };
-        if (p.payment_type === '\u0627\u0634\u062a\u0631\u0627\u0643') {
-          grouped[key].subscription = p;
-          grouped[key].sub_date = p.payment_date;
-        } else if (p.payment_type === '\u0645\u0633\u0627\u0647\u0645\u0629') {
-          grouped[key].contribution_total += parseFloat(p.amount || 0);
-          if (p.payment_date) grouped[key].contribution_dates.push(p.payment_date.split('T')[0]);
+        if (p.payment_type === 'اشتراك') {
+          byMember[mid].sub_total += parseFloat(p.amount || 0);
+          const mKey = `${p.year}-${String(p.month).padStart(2, '0')}`;
+          if (!byMember[mid].sub_months.find(m => m.key === mKey)) {
+            byMember[mid].sub_months.push({ key: mKey, month: p.month, year: p.year });
+          }
+        } else if (p.payment_type === 'مساهمة') {
+          byMember[mid].con_total += parseFloat(p.amount || 0);
+          byMember[mid].con_count += 1;
         }
       });
-      const rows = Object.values(grouped);
-      const totalSub = rows.reduce((s, r) => s + (r.subscription?.amount || 0), 0);
-      const totalCon = rows.reduce((s, r) => s + (r.contribution_total || 0), 0);
+
+      // ملخص الأشهر: إذا متتالية → "شهر 6 إلى شهر 10"، وإلا → "شهر 6، شهر 9"
+      const summarizeMonths = (months) => {
+        if (!months || months.length === 0) return '—';
+        const sorted = [...months].sort((a, b) => a.key.localeCompare(b.key));
+        if (sorted.length === 1) return `شهر ${sorted[0].month} (${sorted[0].year})`;
+        let consecutive = true;
+        for (let i = 1; i < sorted.length; i++) {
+          const prev = sorted[i - 1];
+          const cur = sorted[i];
+          const prevDate = new Date(prev.year, prev.month - 1);
+          prevDate.setMonth(prevDate.getMonth() + 1);
+          if (prevDate.getFullYear() !== cur.year || prevDate.getMonth() + 1 !== cur.month) {
+            consecutive = false; break;
+          }
+        }
+        const first = sorted[0];
+        const last = sorted[sorted.length - 1];
+        if (consecutive) return `شهر ${first.month} (${first.year}) إلى شهر ${last.month} (${last.year})`;
+        return sorted.map(m => `شهر ${m.month}`).join('، ');
+      };
+
+      const rows = Object.values(byMember).sort((a, b) => a.member_name.localeCompare(b.member_name, 'ar'));
+      const totalSub = rows.reduce((s, r) => s + r.sub_total, 0);
+      const totalCon = rows.reduce((s, r) => s + r.con_total, 0);
+      const totalConCount = rows.reduce((s, r) => s + r.con_count, 0);
+
       return (
         <div className="report-content">
           <div className="report-summary-row">
             <div className="report-summary-box">
               <div className="rsb-val">{rows.length}</div>
-              <div className="rsb-label">إجمالي الدفعات</div>
+              <div className="rsb-label">عدد الأعضاء</div>
             </div>
             <div className="report-summary-box green">
               <div className="rsb-val">{totalSub.toLocaleString('en-US')} د.أ</div>
@@ -301,7 +331,7 @@ export default function ReportsPage() {
             </div>
             <div className="report-summary-box" style={{ borderColor: '#10b981' }}>
               <div className="rsb-val" style={{ color: '#10b981' }}>{totalCon.toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">إجمالي المساهمات</div>
+              <div className="rsb-label">إجمالي المساهمات ({totalConCount} مساهمة)</div>
             </div>
             <div className="report-summary-box blue">
               <div className="rsb-val">{(totalSub + totalCon).toLocaleString('en-US')} د.أ</div>
@@ -313,28 +343,16 @@ export default function ReportsPage() {
               <tr>
                 <th>#</th>
                 <th>اسم العضو</th>
-                <th>الشهر</th>
-                <th>الاشتراك</th>
-                <th>المساهمة</th>
-                <th>تاريخ الدفع</th>
-                <th>ملاحظات</th>
+                <th>أشهر الاشتراك</th>
+                <th>مجموع الاشتراكات</th>
+                <th>عدد المساهمات</th>
+                <th>مجموع المساهمات</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row, i) => (
                 <tr key={i}>
                   <td>{i + 1}</td>
-                  <td style={{ fontWeight: 600 }}>{row.member_name}</td>
-                  <td>شهر {row.month} ({row.year})</td>
-                  <td style={{ color: '#10b981', fontWeight: 700 }}>
-                    {row.subscription ? `${row.subscription.amount.toLocaleString('en-US')} د.أ` : '—'}
-                  </td>
-                  <td style={{ color: '#10b981', fontWeight: 700 }}>
-                    {row.contribution_total > 0 ? `${row.contribution_total.toLocaleString('en-US')} د.أ` : '—'}
-                  </td>
-                  <td style={{ fontSize: '0.82rem' }}>
-                    {row.sub_date ? row.sub_date.split('T')[0] : ''}
-                    {row.contribution_dates.length > 0 ? (row.sub_date ? ' | ' : '') + row.contribution_dates.join(' ، ') : ''}
                     {!row.sub_date && row.contribution_dates.length === 0 ? '—' : ''}
                   </td>
                   <td style={{ fontSize: '0.8rem' }}>
