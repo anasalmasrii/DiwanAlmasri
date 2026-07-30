@@ -38,6 +38,10 @@ export default function ReportsPage() {
     months_owed: true,
     status: true,
   });
+  const [summaryOptions, setSummaryOptions] = useState({
+    showExpenses: false,
+    showDefaulters: false,
+  });
 
   const years = [];
   for (let y = 2020; y <= now.getFullYear() + 1; y++) years.push(y);
@@ -515,6 +519,52 @@ export default function ReportsPage() {
               })}
             </tbody>
           </table>
+
+          {/* تفاصيل المصاريف — اختياري */}
+          {summaryOptions.showExpenses && expenses && expenses.length > 0 && (
+            <>
+              <h4 style={{ marginTop: '24px', marginBottom: '10px', borderBottom: '2px solid #e5e7eb', paddingBottom: '8px', color: '#374151', fontWeight: 700 }}>
+                🛠️ تفاصيل المصاريف
+              </h4>
+              <table className="data-table">
+                <thead>
+                  <tr><th>#</th><th>البيان</th><th>التصنيف</th><th>التاريخ</th><th>المبلغ</th></tr>
+                </thead>
+                <tbody>
+                  {expenses.map((e, i) => (
+                    <tr key={e.id}>
+                      <td>{i + 1}</td>
+                      <td style={{ fontWeight: 600 }}>{e.description}</td>
+                      <td>{e.category || 'عام'}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{(e.expense_date || '').split('T')[0]}</td>
+                      <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>−{parseFloat(e.amount).toLocaleString('en-US')} د.أ</td>
+                    </tr>
+                  ))}
+                  <tr style={{ fontWeight: 800, background: '#fef2f2' }}>
+                    <td colSpan="4" style={{ textAlign: 'center', color: '#ef4444' }}>الإجمالي</td>
+                    <td style={{ color: '#ef4444', fontWeight: 800, whiteSpace: 'nowrap' }}>−{totalExp.toLocaleString('en-US')} د.أ</td>
+                  </tr>
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {/* قائمة المتخلفين — اختياري */}
+          {summaryOptions.showDefaulters && (
+            <>
+              <h4 style={{ marginTop: '24px', marginBottom: '10px', borderBottom: '2px solid #fca5a5', paddingBottom: '8px', color: '#991b1b', fontWeight: 700 }}>
+                ⚠️ قائمة المتخلفين عن السداد ({unpaidCount} عضو)
+              </h4>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                لعرض قائمة تفصيلية بأسماء المتخلفين، استخدم &quot;تقرير المتخلفين عن السداد&quot; من قائمة أنواع التقارير.
+              </p>
+              <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '10px', border: '1px solid #fca5a5', textAlign: 'center' }}>
+                <span style={{ fontSize: '2rem', display: 'block', marginBottom: '6px' }}>⚠️</span>
+                <strong style={{ color: '#991b1b', fontSize: '1.1rem' }}>{unpaidCount} عضو</strong>
+                <span style={{ color: '#7f1d1d', display: 'block', marginTop: '4px' }}>لم يسددوا اشتراك هذا الشهر — إجمالي {unpaidTotal.toLocaleString('en-US')} د.أ</span>
+              </div>
+            </>
+          )}
         </div>
       );
     }
@@ -643,6 +693,21 @@ export default function ReportsPage() {
                 <label key={col.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}>
                   <input type="checkbox" checked={visibleColumns[col.key]} onChange={e => setVisibleColumns({...visibleColumns, [col.key]: e.target.checked})} />
                   {col.label}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {reportType === 'summary' && (
+            <div className="no-print" style={{ padding: '12px 24px', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'center' }}>
+              <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>⚙️ تفاصيل إضافية:</strong>
+              {[
+                { key: 'showExpenses', label: '🛠️ تفاصيل المصاريف' },
+                { key: 'showDefaulters', label: '⚠️ قائمة المتخلفين' },
+              ].map(opt => (
+                <label key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', cursor: 'pointer', userSelect: 'none', padding: '6px 12px', borderRadius: '8px', border: `1px solid ${summaryOptions[opt.key] ? 'var(--accent)' : 'var(--border)'}`, background: summaryOptions[opt.key] ? 'var(--accent-subtle)' : 'transparent', transition: 'all 0.2s' }}>
+                  <input type="checkbox" checked={summaryOptions[opt.key]} onChange={e => setSummaryOptions({...summaryOptions, [opt.key]: e.target.checked})} />
+                  {opt.label}
                 </label>
               ))}
             </div>
