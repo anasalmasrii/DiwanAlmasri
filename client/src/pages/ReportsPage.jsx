@@ -461,10 +461,6 @@ export default function ReportsPage() {
               <div className="rsb-val">{totalOwed.toLocaleString('en-US')} د.أ</div>
               <div className="rsb-label">{filterMonth ? 'إجمالي المبالغ المتراكمة (لهذا الشهر)' : 'إجمالي المبالغ المتراكمة (جميع الأشهر)'}</div>
             </div>
-            <div className="report-summary-box red">
-              <div className="rsb-val">{totalMonthsOwed}</div>
-              <div className="rsb-label">إجمالي الأشهر المتراكمة</div>
-            </div>
             <div className="report-summary-box">
               <div className="rsb-val">{month ? `شهر ${month} / ${year}` : `جميع أشهر ${year}`}</div>
               <div className="rsb-label">الفترة</div>
