@@ -341,13 +341,27 @@ export default function ReportsPage() {
               {rows.map((row, i) => (
                 <tr key={i}>
                   <td>{i + 1}</td>
-                    {!row.sub_date && row.contribution_dates.length === 0 ? '—' : ''}
+                  <td style={{ fontWeight: 700 }}>{row.member_name}</td>
+                  <td style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    {summarizeMonths(row.sub_months)}
                   </td>
-                  <td style={{ fontSize: '0.8rem' }}>
-                    {row.subscription?.notes || '—'}
+                  <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    {row.sub_total > 0 ? `${row.sub_total.toLocaleString('en-US')} د.أ` : '—'}
+                  </td>
+                  <td style={{ textAlign: 'center', fontWeight: 600 }}>
+                    {row.con_count > 0 ? row.con_count : '—'}
+                  </td>
+                  <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    {row.con_total > 0 ? `${row.con_total.toLocaleString('en-US')} د.أ` : '—'}
                   </td>
                 </tr>
               ))}
+              <tr style={{ fontWeight: 800, borderTop: '2px solid var(--border)', background: 'var(--bg-glass)' }}>
+                <td colSpan="3" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>الإجمالي</td>
+                <td style={{ color: '#10b981', fontWeight: 800 }}>{totalSub.toLocaleString('en-US')} د.أ</td>
+                <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{totalConCount}</td>
+                <td style={{ color: '#10b981', fontWeight: 800 }}>{totalCon.toLocaleString('en-US')} د.أ</td>
+              </tr>
             </tbody>
           </table>
         </div>
