@@ -292,25 +292,13 @@ export default function ReportsPage() {
         }
       });
 
-      // ملخص الأشهر: إذا متتالية → "شهر 6 إلى شهر 10"، وإلا → "شهر 6، شهر 9"
+      // ملخص الأشهر — نفس تنسيق صفحة الدفعات
       const summarizeMonths = (months) => {
         if (!months || months.length === 0) return '—';
-        const sorted = [...months].sort((a, b) => a.key.localeCompare(b.key));
+        const sorted = [...months].sort((a, b) => a.month - b.month);
         if (sorted.length === 1) return `شهر ${sorted[0].month} (${sorted[0].year})`;
-        let consecutive = true;
-        for (let i = 1; i < sorted.length; i++) {
-          const prev = sorted[i - 1];
-          const cur = sorted[i];
-          const prevDate = new Date(prev.year, prev.month - 1);
-          prevDate.setMonth(prevDate.getMonth() + 1);
-          if (prevDate.getFullYear() !== cur.year || prevDate.getMonth() + 1 !== cur.month) {
-            consecutive = false; break;
-          }
-        }
-        const first = sorted[0];
-        const last = sorted[sorted.length - 1];
-        if (consecutive) return `شهر ${first.month} (${first.year}) إلى شهر ${last.month} (${last.year})`;
-        return sorted.map(m => `شهر ${m.month}`).join('، ');
+        const nums = sorted.map(m => m.month).join(', ');
+        return `مسدد لـ ${sorted.length} أشهر (${nums})`;
       };
 
       const rows = Object.values(byMember).sort((a, b) => a.member_name.localeCompare(b.member_name, 'ar'));
