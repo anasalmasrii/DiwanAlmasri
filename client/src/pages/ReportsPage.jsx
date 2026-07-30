@@ -448,8 +448,8 @@ export default function ReportsPage() {
     }
     if (reportType === 'defaulters') {
       const { defaulters, month, year } = reportData;
-      const totalOwed = (defaulters || []).length * 3;
       const totalMonthsOwed = (defaulters || []).reduce((sum, m) => sum + Math.max(0, m.months_owed || 0), 0);
+      const totalOwed = filterMonth ? (defaulters || []).length * 3 : totalMonthsOwed * 3;
       return (
         <div className="report-content">
           <div className="report-summary-row">
@@ -459,14 +459,14 @@ export default function ReportsPage() {
             </div>
             <div className="report-summary-box red">
               <div className="rsb-val">{totalOwed.toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">إجمالي المبالغ المتراكمة (لهذا الشهر)</div>
+              <div className="rsb-label">{filterMonth ? 'إجمالي المبالغ المتراكمة (لهذا الشهر)' : 'إجمالي المبالغ المتراكمة (جميع الأشهر)'}</div>
             </div>
             <div className="report-summary-box red">
               <div className="rsb-val">{totalMonthsOwed}</div>
               <div className="rsb-label">إجمالي الأشهر المتراكمة</div>
             </div>
             <div className="report-summary-box">
-              <div className="rsb-val">{month ? `شهر ${month} / ${year}` : `${year}`}</div>
+              <div className="rsb-val">{month ? `شهر ${month} / ${year}` : `جميع أشهر ${year}`}</div>
               <div className="rsb-label">الفترة</div>
             </div>
           </div>
@@ -495,7 +495,7 @@ export default function ReportsPage() {
                     {visibleDefaulterColumns.national_id && <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.national_id || '—'}</td>}
                     {visibleDefaulterColumns.phone_number && <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.phone_number || '—'}</td>}
                     {visibleDefaulterColumns.months_owed && <td style={{ fontWeight: 600 }}>{Math.max(0, m.months_owed || 0)} أشهر</td>}
-                    {visibleDefaulterColumns.amount_required && <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>3 د.أ</td>}
+                    {visibleDefaulterColumns.amount_required && <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>{filterMonth ? '3 د.أ' : `${(Math.max(0, m.months_owed || 0) * 3).toLocaleString('en-US')} د.أ`}</td>}
                     {visibleDefaulterColumns.status && (
                       <td>
                         <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>

@@ -166,27 +166,38 @@ router.get('/defaulters', async (req, res) => {
 
     if (filterMonth === 'all') {
       defaulters = await db.all(`
-        SELECT m.*,
-          (SELECT COUNT(*) FROM payments WHERE member_id = m.id) as total_payments
-        FROM members m
-        WHERE m.id NOT IN (
-          SELECT member_id FROM payments WHERE payment_type = 'اشتراك'
+        SELECT * FROM (
+          SELECT m.*,
+            (
+              (cast(strftime('%Y', 'now') as integer) - cast(strftime('%Y', m.join_date) as integer)) * 12 
+              + (cast(strftime('%m', 'now') as integer) - cast(strftime('%m', m.join_date) as integer)) 
+              + 1 
+              - (SELECT COUNT(*) FROM payments WHERE member_id = m.id AND payment_type = 'اشتراك')
+            ) as months_owed
+          FROM members m
+          WHERE m.status = 'active'
         )
-        ORDER BY m.full_name
+        WHERE months_owed > 0
+        ORDER BY full_name
       `);
       isAfterDeadline = false;
     } else {
       const monthNum = parseInt(filterMonth, 10);
       defaulters = await db.all(`
         SELECT m.*,
-          (SELECT COUNT(*) FROM payments WHERE member_id = m.id) as total_payments
+          (
+            (cast(strftime('%Y', 'now') as integer) - cast(strftime('%Y', m.join_date) as integer)) * 12 
+            + (cast(strftime('%m', 'now') as integer) - cast(strftime('%m', m.join_date) as integer)) 
+            + 1 
+            - (SELECT COUNT(*) FROM payments WHERE member_id = m.id AND payment_type = 'اشتراك')
+          ) as months_owed
         FROM members m
         LEFT JOIN payments p
           ON m.id = p.member_id
           AND p.month = ?
           AND p.year = ?
           AND p.payment_type = 'اشتراك'
-        WHERE p.id IS NULL
+        WHERE m.status = 'active' AND p.id IS NULL
         ORDER BY m.full_name
       `, [monthNum, currentYear]);
       
