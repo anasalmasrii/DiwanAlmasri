@@ -292,13 +292,38 @@ export default function ReportsPage() {
         }
       });
 
-      // ملخص الأشهر — نفس تنسيق صفحة الدفعات
+      // ملخص الأشهر — مع اختصار الفترات المتتالية (أكثر من 3 أشهر) مثل (6-12)
       const summarizeMonths = (months) => {
         if (!months || months.length === 0) return '—';
         const sorted = [...months].sort((a, b) => a.month - b.month);
         if (sorted.length === 1) return `شهر ${sorted[0].month} (${sorted[0].year})`;
-        const nums = sorted.map(m => m.month).join(', ');
-        return `مسدد لـ ${sorted.length} أشهر (${nums})`;
+        
+        const monthNums = [...new Set(sorted.map(m => m.month))].sort((a, b) => a - b);
+        let ranges = [];
+        let start = monthNums[0];
+        let end = monthNums[0];
+
+        for (let i = 1; i < monthNums.length; i++) {
+          if (monthNums[i] === end + 1) {
+            end = monthNums[i];
+          } else {
+            if (end - start >= 3) {
+              ranges.push(`${start}-${end}`);
+            } else {
+              for (let j = start; j <= end; j++) ranges.push(j);
+            }
+            start = monthNums[i];
+            end = monthNums[i];
+          }
+        }
+        if (end - start >= 3) {
+          ranges.push(`${start}-${end}`);
+        } else {
+          for (let j = start; j <= end; j++) ranges.push(j);
+        }
+
+        const formatted = ranges.join(', ');
+        return `مسدد لـ ${sorted.length} أشهر (${formatted})`;
       };
 
       const rows = Object.values(byMember).sort((a, b) => a.member_name.localeCompare(b.member_name, 'ar'));
