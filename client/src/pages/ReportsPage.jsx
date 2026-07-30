@@ -38,6 +38,13 @@ export default function ReportsPage() {
     months_owed: true,
     status: true,
   });
+  const [visibleDefaulterColumns, setVisibleDefaulterColumns] = useState({
+    national_id: true,
+    phone_number: true,
+    months_owed: true,
+    amount_required: true,
+    status: true,
+  });
   const [summaryOptions, setSummaryOptions] = useState({
     showExpenses: false,
     showDefaulters: false,
@@ -473,11 +480,11 @@ export default function ReportsPage() {
                 <tr>
                   <th>#</th>
                   <th>اسم العضو</th>
-                  <th>الرقم الوطني</th>
-                  <th>رقم الهاتف</th>
-                  <th>الأشهر المتراكمة</th>
-                  <th>المبلغ المطلوب</th>
-                  <th>الحالة</th>
+                  {visibleDefaulterColumns.national_id && <th>الرقم الوطني</th>}
+                  {visibleDefaulterColumns.phone_number && <th>رقم الهاتف</th>}
+                  {visibleDefaulterColumns.months_owed && <th>الأشهر المتراكمة</th>}
+                  {visibleDefaulterColumns.amount_required && <th>المبلغ المطلوب</th>}
+                  {visibleDefaulterColumns.status && <th>الحالة</th>}
                 </tr>
               </thead>
               <tbody>
@@ -485,22 +492,27 @@ export default function ReportsPage() {
                   <tr key={m.id} style={{ background: i % 2 === 0 ? '' : 'rgba(239,68,68,0.03)' }}>
                     <td>{i + 1}</td>
                     <td style={{ fontWeight: 700 }}>{m.full_name}</td>
-                    <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.national_id || '—'}</td>
-                    <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.phone_number || '—'}</td>
-                    <td style={{ fontWeight: 600 }}>{Math.max(0, m.months_owed || 0)} أشهر</td>
-                    <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>3 د.أ</td>
-                    <td>
-                      <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>
-                        لم يسدد
-                      </span>
-                    </td>
+                    {visibleDefaulterColumns.national_id && <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.national_id || '—'}</td>}
+                    {visibleDefaulterColumns.phone_number && <td style={{ direction: 'ltr', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.phone_number || '—'}</td>}
+                    {visibleDefaulterColumns.months_owed && <td style={{ fontWeight: 600 }}>{Math.max(0, m.months_owed || 0)} أشهر</td>}
+                    {visibleDefaulterColumns.amount_required && <td style={{ color: '#ef4444', fontWeight: 700, whiteSpace: 'nowrap' }}>3 د.أ</td>}
+                    {visibleDefaulterColumns.status && (
+                      <td>
+                        <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>
+                          لم يسدد
+                        </span>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 <tr style={{ fontWeight: 800, borderTop: '2px solid #ef4444', background: 'var(--bg-glass)' }}>
-                  <td colSpan="4" style={{ textAlign: 'center', color: '#ef4444' }}>الإجمالي</td>
-                  <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalMonthsOwed} أشهر</td>
-                  <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalOwed.toLocaleString('en-US')} د.أ</td>
+                  <td style={{ color: '#ef4444' }}>الإجمالي</td>
                   <td></td>
+                  {visibleDefaulterColumns.national_id && <td></td>}
+                  {visibleDefaulterColumns.phone_number && <td></td>}
+                  {visibleDefaulterColumns.months_owed && <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalMonthsOwed} أشهر</td>}
+                  {visibleDefaulterColumns.amount_required && <td style={{ color: '#ef4444', fontWeight: 800 }}>{totalOwed.toLocaleString('en-US')} د.أ</td>}
+                  {visibleDefaulterColumns.status && <td></td>}
                 </tr>
               </tbody>
             </table>
@@ -741,6 +753,24 @@ export default function ReportsPage() {
               ].map(col => (
                 <label key={col.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}>
                   <input type="checkbox" checked={visibleColumns[col.key]} onChange={e => setVisibleColumns({...visibleColumns, [col.key]: e.target.checked})} />
+                  {col.label}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {reportType === 'defaulters' && (
+            <div className="no-print" style={{ padding: '12px 24px', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+              <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>⚙️ إظهار الأعمدة:</strong>
+              {[
+                { key: 'national_id', label: 'الرقم الوطني' },
+                { key: 'phone_number', label: 'رقم الهاتف' },
+                { key: 'months_owed', label: 'الأشهر المتراكمة' },
+                { key: 'amount_required', label: 'المبلغ المطلوب' },
+                { key: 'status', label: 'الحالة' }
+              ].map(col => (
+                <label key={col.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}>
+                  <input type="checkbox" checked={visibleDefaulterColumns[col.key]} onChange={e => setVisibleDefaulterColumns({...visibleDefaulterColumns, [col.key]: e.target.checked})} />
                   {col.label}
                 </label>
               ))}
