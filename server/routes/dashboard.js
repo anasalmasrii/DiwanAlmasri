@@ -33,10 +33,6 @@ router.get('/', async (req, res) => {
     );
     const totalMembers = totalResult ? parseInt(totalResult.count, 10) : 0;
 
-    // إجمالي أموال الصندوق الكلية (منذ البداية وحتى المسبق)
-    const treasuryResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM payments");
-    const totalTreasury = treasuryResult ? parseFloat(treasuryResult.total) : 0;
-
     // إجمالي المصاريف الكلية
     const expensesResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM expenses");
     const totalExpenses = expensesResult ? parseFloat(expensesResult.total) : 0;
@@ -46,8 +42,13 @@ router.get('/', async (req, res) => {
     const totalExternalContributions = extContribResult ? parseFloat(extContribResult.total) : 0;
     const externalContributorsCount = extContribResult ? parseInt(extContribResult.count, 10) : 0;
 
+    // إجمالي أموال الصندوق الكلية (تشمل مدفوعات الأعضاء والمساهمات الخارجية)
+    const treasuryResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM payments");
+    const totalTreasury = (treasuryResult ? parseFloat(treasuryResult.total) : 0) + totalExternalContributions;
+
     let monthlyRevenueSubscriptions = 0;
     let monthlyRevenueContributions = 0;
+    let monthlyExternalContributions = 0;
     let paidSubscriptionsCount = 0;
     let paidContributionsCount = 0;
     let unpaidCount = 0;
@@ -74,6 +75,7 @@ router.get('/', async (req, res) => {
         )
       `);
       unpaidCount = unpaidRes ? parseInt(unpaidRes.count, 10) : 0;
+      monthlyExternalContributions = totalExternalContributions;
       isAfterDeadline = false; // No specific deadline for 'all'
     } else {
       // إحصائيات لشهر محدد
@@ -116,9 +118,15 @@ router.get('/', async (req, res) => {
       if (monthNum < currentRealMonth) isAfterDeadline = true;
       else if (monthNum > currentRealMonth) isAfterDeadline = false;
       else isAfterDeadline = currentDay > 25;
+
+      const extMonthlyRes = await db.get(
+        "SELECT COALESCE(SUM(amount), 0) as total FROM external_contributions WHERE cast(strftime('%m', contribution_date) as integer) = ? AND cast(strftime('%Y', contribution_date) as integer) = ?",
+        [monthNum, currentYear]
+      );
+      monthlyExternalContributions = extMonthlyRes ? parseFloat(extMonthlyRes.total) : 0;
     }
 
-    const monthlyRevenueTotal = monthlyRevenueSubscriptions + monthlyRevenueContributions;
+    const monthlyRevenueTotal = monthlyRevenueSubscriptions + monthlyRevenueContributions + monthlyExternalContributions;
 
     res.json({
       totalMembers,
@@ -129,7 +137,7 @@ router.get('/', async (req, res) => {
       totalExpenses,
       totalExternalContributions,
       externalContributorsCount,
-      netTreasury: totalTreasury + totalExternalContributions - totalExpenses,
+      netTreasury: totalTreasury - totalExpenses,
       paidSubscriptionsCount,
       paidContributionsCount,
       unpaidCount,

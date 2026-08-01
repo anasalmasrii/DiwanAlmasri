@@ -559,7 +559,7 @@ export default function ReportsPage() {
       const totalExp    = (expenses || []).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
       const monthSub    = dash?.monthlyRevenueSubscriptions || 0;
       const monthCon    = dash?.monthlyRevenueContributions || 0;
-      const totalRevAll = dash?.totalTreasury || 0;
+      const totalRevAll = (dash?.totalTreasury || 0) - (dash?.totalExternalContributions || 0);
       const extContrib  = dash?.totalExternalContributions || 0;
       const netTreasury = dash?.netTreasury || 0;
       const unpaidCount = dash?.unpaidCount || 0;
