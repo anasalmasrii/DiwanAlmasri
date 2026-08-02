@@ -50,6 +50,10 @@ export default function ReportsPage() {
     showExpenses: false,
     showDefaulters: false,
   });
+  const [paymentsOptions, setPaymentsOptions] = useState({
+    paidSubscriptionsOnly: false,
+    hideContributions: false,
+  });
 
   const years = [];
   for (let y = 2020; y <= now.getFullYear() + 1; y++) years.push(y);
@@ -164,14 +168,21 @@ export default function ReportsPage() {
 
     if (reportType === 'members') {
       const allMembers = reportData.members || [];
-      const members = allMembers.filter(m => !excludedIds.includes(m.id));
-      const active = members.filter(m => m.status === 'active').length;
-      const unpaidMembers = members.filter(m => filterMonth ? (m.payment_status !== 'paid') : ((m.yearly_subscriptions || 0) <= 0));
-      const paidMembers = members.filter(m => filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0));
+      const baseMembers = allMembers.filter(m => !excludedIds.includes(m.id));
+      const active = baseMembers.filter(m => m.status === 'active').length;
+      const unpaidMembers = baseMembers.filter(m => filterMonth ? (m.payment_status !== 'paid') : ((m.yearly_subscriptions || 0) <= 0));
+      const paidMembers = baseMembers.filter(m => filterMonth ? (m.payment_status === 'paid') : ((m.yearly_subscriptions || 0) > 0));
       // مجموع الاشتراكات الغير مسددة = عدد المتأخرين × 3 د.أ (للشهر المحدد) أو مجموع الأشهر المتراكمة × 3
       const totalUnpaidAmount = filterMonth
         ? unpaidMembers.length * 3
-        : members.reduce((s, m) => s + (Math.max(0, m.months_owed || 0) * 3), 0);
+        : baseMembers.reduce((s, m) => s + (Math.max(0, m.months_owed || 0) * 3), 0);
+      
+      let members = baseMembers;
+      if (filterStatus === 'paid') {
+        members = paidMembers;
+      } else if (filterStatus === 'unpaid') {
+        members = unpaidMembers;
+      }
       return (
         <div className="report-content">
           <div className="report-summary-row">
@@ -348,7 +359,13 @@ export default function ReportsPage() {
       };
 
       const rows = Object.values(byMember).sort((a, b) => a.member_name.localeCompare(b.member_name, 'ar'));
-      const filteredRows = rows.filter(r => !excludedIds.includes(r.member_id));
+      let filteredRows = rows.filter(r => !excludedIds.includes(r.member_id));
+      
+      // Filter by subscriptions paid only if option is enabled
+      if (paymentsOptions.paidSubscriptionsOnly) {
+        filteredRows = filteredRows.filter(r => r.sub_total > 0);
+      }
+      
       const totalSub = filteredRows.reduce((s, r) => s + r.sub_total, 0);
       const totalCon = filteredRows.reduce((s, r) => s + r.con_total, 0);
       const totalConCount = filteredRows.reduce((s, r) => s + r.con_count, 0);
@@ -364,14 +381,18 @@ export default function ReportsPage() {
               <div className="rsb-val">{totalSub.toLocaleString('en-US')} د.أ</div>
               <div className="rsb-label">إجمالي الاشتراكات</div>
             </div>
-            <div className="report-summary-box" style={{ borderColor: '#10b981' }}>
-              <div className="rsb-val" style={{ color: '#10b981' }}>{totalCon.toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">إجمالي المساهمات ({totalConCount} مساهمة)</div>
-            </div>
-            <div className="report-summary-box blue">
-              <div className="rsb-val" style={{ color: '#3b82f6' }}>{(totalSub + totalCon).toLocaleString('en-US')} د.أ</div>
-              <div className="rsb-label">الإجمالي الكلي</div>
-            </div>
+            {!paymentsOptions.hideContributions && (
+              <div className="report-summary-box" style={{ borderColor: '#10b981' }}>
+                <div className="rsb-val" style={{ color: '#10b981' }}>{totalCon.toLocaleString('en-US')} د.أ</div>
+                <div className="rsb-label">إجمالي المساهمات ({totalConCount} مساهمة)</div>
+              </div>
+            )}
+            {!paymentsOptions.hideContributions && (
+              <div className="report-summary-box blue">
+                <div className="rsb-val" style={{ color: '#3b82f6' }}>{(totalSub + totalCon).toLocaleString('en-US')} د.أ</div>
+                <div className="rsb-label">الإجمالي الكلي</div>
+              </div>
+            )}
           </div>
           <table className="data-table">
             <thead>
@@ -380,8 +401,8 @@ export default function ReportsPage() {
                 <th>اسم العضو</th>
                 <th>أشهر الاشتراك</th>
                 <th>مجموع الاشتراكات</th>
-                <th>عدد المساهمات</th>
-                <th>مجموع المساهمات</th>
+                {!paymentsOptions.hideContributions && <th>عدد المساهمات</th>}
+                {!paymentsOptions.hideContributions && <th>مجموع المساهمات</th>}
                 <th className="no-print" style={{ width: '60px', textAlign: 'center' }}>إجراء</th>
               </tr>
             </thead>
@@ -396,12 +417,16 @@ export default function ReportsPage() {
                   <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
                     {row.sub_total > 0 ? `${row.sub_total.toLocaleString('en-US')} د.أ` : '—'}
                   </td>
-                  <td style={{ textAlign: 'center', fontWeight: 600 }}>
-                    {row.con_count > 0 ? row.con_count : '—'}
-                  </td>
-                  <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                    {row.con_total > 0 ? `${row.con_total.toLocaleString('en-US')} د.أ` : '—'}
-                  </td>
+                  {!paymentsOptions.hideContributions && (
+                    <td style={{ textAlign: 'center', fontWeight: 600 }}>
+                      {row.con_count > 0 ? row.con_count : '—'}
+                    </td>
+                  )}
+                  {!paymentsOptions.hideContributions && (
+                    <td style={{ color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      {row.con_total > 0 ? `${row.con_total.toLocaleString('en-US')} د.أ` : '—'}
+                    </td>
+                  )}
                   <td className="no-print" style={{ textAlign: 'center' }}>
                     <button
                       onClick={() => setExcludedIds([...excludedIds, row.member_id])}
@@ -416,8 +441,8 @@ export default function ReportsPage() {
               <tr style={{ fontWeight: 800, borderTop: '2px solid var(--border)', background: 'var(--bg-glass)' }}>
                 <td colSpan="3" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>الإجمالي</td>
                 <td style={{ color: '#10b981', fontWeight: 800 }}>{totalSub.toLocaleString('en-US')} د.أ</td>
-                <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{totalConCount}</td>
-                <td style={{ color: '#10b981', fontWeight: 800 }}>{totalCon.toLocaleString('en-US')} د.أ</td>
+                {!paymentsOptions.hideContributions && <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{totalConCount}</td>}
+                {!paymentsOptions.hideContributions && <td style={{ color: '#10b981', fontWeight: 800 }}>{totalCon.toLocaleString('en-US')} د.أ</td>}
                 <td className="no-print"></td>
               </tr>
             </tbody>
@@ -808,6 +833,20 @@ export default function ReportsPage() {
                   {col.label}
                 </label>
               ))}
+            </div>
+          )}
+
+          {reportType === 'payments' && (
+            <div className="no-print" style={{ padding: '12px 24px', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+              <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>⚙️ خيارات التصفية:</strong>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}>
+                <input type="checkbox" checked={paymentsOptions.paidSubscriptionsOnly} onChange={e => setPaymentsOptions({...paymentsOptions, paidSubscriptionsOnly: e.target.checked})} />
+                💵 عرض مسددي الاشتراكات فقط
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}>
+                <input type="checkbox" checked={paymentsOptions.hideContributions} onChange={e => setPaymentsOptions({...paymentsOptions, hideContributions: e.target.checked})} />
+                🎁 إخفاء المساهمات
+              </label>
             </div>
           )}
 
