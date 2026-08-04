@@ -5,11 +5,14 @@ import 'react-datepicker/dist/react-datepicker.css';
 import ar from 'date-fns/locale/ar-SA';
 
 const customAr = { ...ar };
-const originalMonth = customAr.localize.month;
+customAr.localize = { ...ar.localize };
+const originalMonth = ar.localize.month;
 customAr.localize.month = function() {
   const monthName = originalMonth.apply(this, arguments);
   const monthIndex = arguments[0];
-  return `${monthName} (${monthIndex + 1})`;
+  const suffix = `(${monthIndex + 1})`;
+  if (monthName.includes(suffix)) return monthName;
+  return `${monthName} ${suffix}`;
 };
 registerLocale('ar', customAr);
 
