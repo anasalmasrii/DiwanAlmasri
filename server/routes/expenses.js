@@ -61,7 +61,7 @@ router.get('/summary', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   const db = getDb();
-  const { amount, description, expense_date, category } = req.body;
+  const { amount, description, expense_date, category, receipt_url } = req.body;
 
   if (!amount || !description || !expense_date) {
     return res.status(400).json({ error: 'المبلغ والوصف والتاريخ مطلوبة' });
@@ -73,8 +73,8 @@ router.post('/', async (req, res) => {
     const year = dateObj.getFullYear();
 
     const result = await db.run(
-      'INSERT INTO expenses (amount, description, expense_date, month, year, category) VALUES (?, ?, ?, ?, ?, ?)',
-      [parseFloat(amount), description, expense_date, month, year, category || 'عام']
+      'INSERT INTO expenses (amount, description, expense_date, month, year, category, receipt_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [parseFloat(amount), description, expense_date, month, year, category || 'عام', receipt_url || null]
     );
 
     if (saveDatabase) saveDatabase();
@@ -92,7 +92,7 @@ router.post('/', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   const db = getDb();
-  const { amount, description, expense_date, category } = req.body;
+  const { amount, description, expense_date, category, receipt_url } = req.body;
   const { id } = req.params;
 
   try {
@@ -103,14 +103,17 @@ router.put('/:id', async (req, res) => {
     const month = dateObj.getMonth() + 1;
     const year = dateObj.getFullYear();
 
+    const finalReceiptUrl = receipt_url !== undefined ? receipt_url : existing.receipt_url;
+
     await db.run(
-      'UPDATE expenses SET amount = ?, description = ?, expense_date = ?, month = ?, year = ?, category = ? WHERE id = ?',
+      'UPDATE expenses SET amount = ?, description = ?, expense_date = ?, month = ?, year = ?, category = ?, receipt_url = ? WHERE id = ?',
       [
         parseFloat(amount ?? existing.amount),
         description ?? existing.description,
         expense_date ?? existing.expense_date,
         month, year,
         category ?? existing.category,
+        finalReceiptUrl,
         Number(id)
       ]
     );

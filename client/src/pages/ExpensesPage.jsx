@@ -1,7 +1,7 @@
 /**
  * صفحة مصاريف وصيانة الديوان
  * ==============================
- * تسجيل وتتبع المصاريف المالية للديوان
+ * تسجيل وتتبع المصاريف المالية للديوان وإرفاق الفواتير والإيصالات
  */
 
 import { useState, useEffect } from 'react';
@@ -16,6 +16,7 @@ export default function ExpensesPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [viewReceiptUrl, setViewReceiptUrl] = useState(null);
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -28,8 +29,10 @@ export default function ExpensesPage() {
     description: '',
     expense_date: now.toISOString().split('T')[0],
     category: 'عام',
+    receipt_url: '',
   });
   const [formError, setFormError] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const years = [];
   for (let y = 2020; y <= now.getFullYear() + 1; y++) years.push(y);
@@ -62,7 +65,7 @@ export default function ExpensesPage() {
   };
 
   const openAddModal = () => {
-    setForm({ amount: '', description: '', expense_date: now.toISOString().split('T')[0], category: 'عام' });
+    setForm({ amount: '', description: '', expense_date: now.toISOString().split('T')[0], category: 'عام', receipt_url: '' });
     setFormError('');
     setEditingExpense(null);
     setShowModal(true);
@@ -74,10 +77,68 @@ export default function ExpensesPage() {
       description: expense.description,
       expense_date: expense.expense_date ? expense.expense_date.split('T')[0] : '',
       category: expense.category || 'عام',
+      receipt_url: expense.receipt_url || '',
     });
     setFormError('');
     setEditingExpense(expense);
     setShowModal(true);
+  };
+
+  // معالجة اختيار صورة وتقليص حجمها
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setFormError('يرجى اختيار ملف صورة صالح');
+      return;
+    }
+
+    setUploadingImage(true);
+    setFormError('');
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        setForm(prev => ({ ...prev, receipt_url: dataUrl }));
+        setUploadingImage(false);
+      };
+      img.onerror = () => {
+        setFormError('فشل قراءة صورة الفاتورة');
+        setUploadingImage(false);
+      };
+      img.src = event.target.result;
+    };
+    reader.onerror = () => {
+      setFormError('حدث خطأ في تحميل الصورة');
+      setUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -103,7 +164,7 @@ export default function ExpensesPage() {
         return;
       }
 
-      showToast(isEditing ? 'تم تعديل المصروف بنجاح' : 'تم تسجيل المصروف بنجاح');
+      showToast(isEditing ? 'تم تعديل المصروف والفاتورة بنجاح' : 'تم تسجيل المصروف بنجاح');
       setShowModal(false);
       loadExpenses();
     } catch {
@@ -156,7 +217,7 @@ export default function ExpensesPage() {
             <span>🛠️</span>
             <span>مصاريف وصيانة الديوان</span>
           </h2>
-          <p className="page-description">تسجيل وتتبع المصاريف والنفقات المالية للديوان</p>
+          <p className="page-description">تسجيل وتتبع المصاريف المالية للديوان وإرفاق إيصالات الفواتير</p>
         </div>
         <button id="add-expense-btn" className="btn btn-primary" onClick={openAddModal}>
           ➕ تسجيل مصروف جديد
@@ -232,6 +293,7 @@ export default function ExpensesPage() {
                   <th>التاريخ</th>
                   <th>الشهر</th>
                   <th>المبلغ</th>
+                  <th>الفاتورة / الإيصال</th>
                   <th>الإجراءات</th>
                 </tr>
               </thead>
@@ -250,9 +312,32 @@ export default function ExpensesPage() {
                     <td data-label="المبلغ" style={{ fontWeight: 700, color: 'var(--danger)' }}>
                       {parseFloat(expense.amount).toLocaleString('en-US')} د.أ
                     </td>
+                    <td data-label="الفاتورة">
+                      {expense.receipt_url ? (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          style={{ gap: '4px', fontSize: '0.8rem', color: '#0284c7' }}
+                          onClick={() => setViewReceiptUrl(expense.receipt_url)}
+                          title="عرض الفاتورة المرفقة"
+                        >
+                          🖼️ معاينة الفاتورة
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          style={{ gap: '4px', fontSize: '0.75rem', color: '#b45309', background: '#fef3c7', borderColor: '#fde68a' }}
+                          onClick={() => openEditModal(expense)}
+                          title="إرفاق صورة فاتورة لهذا المصروف"
+                        >
+                          📎 إرفاق صورة
+                        </button>
+                      )}
+                    </td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
-                        <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(expense)} title="تعديل">✏️</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(expense)} title="تعديل المصروف والفاتورة">✏️</button>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(expense)} title="حذف">🗑️</button>
                       </div>
                     </td>
@@ -267,9 +352,9 @@ export default function ExpensesPage() {
       {/* نافذة الإضافة / التعديل */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">{editingExpense ? '✏️ تعديل المصروف' : '➕ تسجيل مصروف جديد'}</h3>
+              <h3 className="modal-title">{editingExpense ? '✏️ تعديل المصروف والفاتورة' : '➕ تسجيل مصروف جديد'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -316,6 +401,66 @@ export default function ExpensesPage() {
                     required
                   />
                 </div>
+
+                {/* حقل رفع وإرفاق صورة الفاتورة */}
+                <div className="form-group" style={{ marginTop: '14px' }}>
+                  <label className="form-label">صورة الفاتورة / الإيصال المرفق</label>
+                  {form.receipt_url ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '10px 14px', borderRadius: '10px' }}>
+                      <img
+                        src={form.receipt_url}
+                        alt="صورة الفاتورة"
+                        style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #86efac', cursor: 'pointer' }}
+                        onClick={() => setViewReceiptUrl(form.receipt_url)}
+                      />
+                      <div style={{ flexGrow: 1 }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#166534' }}>✔ تم إرفاق صورة الفاتورة</div>
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                          <button
+                            type="button"
+                            style={{ background: 'none', border: 'none', color: '#15803d', fontSize: '0.75rem', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontWeight: 'bold' }}
+                            onClick={() => setViewReceiptUrl(form.receipt_url)}
+                          >
+                            👁️ معاينة الصورة
+                          </button>
+                          <label style={{ color: '#b45309', fontSize: '0.75rem', textDecoration: 'underline', cursor: 'pointer', fontWeight: 'bold' }}>
+                            🔄 تغيير الصورة
+                            <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                          </label>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-danger"
+                        style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                        onClick={() => setForm({ ...form, receipt_url: '' })}
+                        title="إزالة صورة الفاتورة"
+                      >
+                        ❌ إزالة
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ border: '2px dashed var(--border)', borderRadius: '10px', padding: '16px', textAlign: 'center', position: 'relative', background: 'rgba(0,0,0,0.015)', cursor: 'pointer' }}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                        disabled={uploadingImage}
+                      />
+                      {uploadingImage ? (
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>⏳ جاري معالجة ورفع الصورة...</div>
+                      ) : (
+                        <div>
+                          <div style={{ fontSize: '1.4rem', marginBottom: '4px' }}>📷</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-main)' }}>اضغط هنا لإرفاق / رفع صورة الفاتورة</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>يدعم كافة صيغ الصور (JPG, PNG, WebP)</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {formError && (
                   <div style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '8px', padding: '8px 12px', background: 'var(--danger-bg)', borderRadius: 'var(--radius-sm)' }}>
                     ⚠️ {formError}
@@ -323,7 +468,7 @@ export default function ExpensesPage() {
                 )}
               </div>
               <div className="modal-footer">
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" disabled={uploadingImage}>
                   {editingExpense ? '💾 حفظ التعديلات' : '➕ تسجيل المصروف'}
                 </button>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>إلغاء</button>
@@ -349,6 +494,36 @@ export default function ExpensesPage() {
             <div className="modal-footer">
               <button className="btn btn-danger" onClick={handleDelete}>🗑️ نعم، احذف</button>
               <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* نافذة معاينة صورة الفاتورة المكبرة */}
+      {viewReceiptUrl && (
+        <div className="modal-overlay" onClick={() => setViewReceiptUrl(null)} style={{ background: 'rgba(0,0,0,0.85)', zIndex: 1000 }}>
+          <div className="modal" style={{ maxWidth: '700px', background: '#1e293b', border: '1px solid #334155', color: '#fff' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ borderColor: '#334155' }}>
+              <h3 className="modal-title" style={{ color: '#fff' }}>🖼️ معاينة صورة الفاتورة / الإيصال</h3>
+              <button className="modal-close" style={{ color: '#fff' }} onClick={() => setViewReceiptUrl(null)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ textAlign: 'center', padding: '16px' }}>
+              <img
+                src={viewReceiptUrl}
+                alt="إيصال الفاتورة"
+                style={{ maxWidth: '100%', maxHeight: '70vh', objectContain: 'contain', borderRadius: '10px', border: '1px solid #475569', margin: '0 auto' }}
+              />
+            </div>
+            <div className="modal-footer" style={{ borderColor: '#334155', justifyContent: 'center' }}>
+              <a
+                href={viewReceiptUrl}
+                download="invoice_receipt.jpg"
+                className="btn btn-primary"
+                style={{ textDecoration: 'none' }}
+              >
+                📥 تحميل الصورة
+              </a>
+              <button className="btn btn-secondary" onClick={() => setViewReceiptUrl(null)}>إغلاق</button>
             </div>
           </div>
         </div>

@@ -95,8 +95,12 @@ export async function initDatabase() {
         month INTEGER NOT NULL,
         year INTEGER NOT NULL,
         category VARCHAR(100) DEFAULT 'عام',
+        receipt_url TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+    await pgPool.query(`
+      ALTER TABLE expenses ADD COLUMN IF NOT EXISTS receipt_url TEXT;
     `);
 
     await pgPool.query(`
@@ -205,6 +209,7 @@ export async function initDatabase() {
       month INTEGER NOT NULL,
       year INTEGER NOT NULL,
       category TEXT DEFAULT 'عام',
+      receipt_url TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -269,6 +274,9 @@ function runMigrations() {
   const paymentCols = getColumnNames('payments');
   if (!paymentCols.includes('payment_type')) { try { sqliteDb.run("ALTER TABLE payments ADD COLUMN payment_type TEXT DEFAULT 'اشتراك'"); } catch(e) {} }
   if (!paymentCols.includes('notes')) { try { sqliteDb.run("ALTER TABLE payments ADD COLUMN notes TEXT"); } catch(e) {} }
+
+  const expenseCols = getColumnNames('expenses');
+  if (!expenseCols.includes('receipt_url')) { try { sqliteDb.run("ALTER TABLE expenses ADD COLUMN receipt_url TEXT"); } catch(e) {} }
 
   saveDatabase();
 }
