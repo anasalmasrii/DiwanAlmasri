@@ -23,6 +23,7 @@ export default function ExpensesPage() {
   const now = new Date();
   const [filterMonth, setFilterMonth] = useState('');
   const [filterYear, setFilterYear] = useState(now.getFullYear());
+  const [filterCategory, setFilterCategory] = useState('');
 
   const [form, setForm] = useState({
     amount: '',
@@ -185,6 +186,7 @@ export default function ExpensesPage() {
   };
 
   const filtered = expenses.filter(e => {
+    if (filterCategory && e.category !== filterCategory) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return e.description.toLowerCase().includes(q) || (e.category || '').toLowerCase().includes(q);
@@ -242,6 +244,13 @@ export default function ExpensesPage() {
               <select className="form-select" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
                 <option value="">الكل</option>
                 {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">التصنيف</label>
+              <select className="form-select" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+                <option value="">الكل</option>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="form-group" style={{ flexGrow: 1 }}>
