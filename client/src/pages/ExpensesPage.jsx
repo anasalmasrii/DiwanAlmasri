@@ -24,6 +24,7 @@ export default function ExpensesPage() {
   const [filterMonth, setFilterMonth] = useState('');
   const [filterYear, setFilterYear] = useState(now.getFullYear());
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterAmount, setFilterAmount] = useState('');
 
   const [form, setForm] = useState({
     amount: '',
@@ -187,6 +188,7 @@ export default function ExpensesPage() {
 
   const filtered = expenses.filter(e => {
     if (filterCategory && e.category !== filterCategory) return false;
+    if (filterAmount && parseFloat(e.amount) !== parseFloat(filterAmount)) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return e.description.toLowerCase().includes(q) || (e.category || '').toLowerCase().includes(q);
@@ -252,6 +254,17 @@ export default function ExpensesPage() {
                 <option value="">الكل</option>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+            </div>
+            <div className="form-group" style={{ flexGrow: 1, maxWidth: '140px' }}>
+              <label className="form-label">المبلغ</label>
+              <input
+                type="number"
+                className="form-input"
+                placeholder="مبلغ محدد"
+                value={filterAmount}
+                onChange={e => setFilterAmount(e.target.value)}
+                step="0.001"
+              />
             </div>
             <div className="form-group" style={{ flexGrow: 1 }}>
               <label className="form-label">بحث</label>
