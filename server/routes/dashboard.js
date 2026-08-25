@@ -46,6 +46,15 @@ router.get('/', async (req, res) => {
     const treasuryResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM payments");
     const totalTreasury = (treasuryResult ? parseFloat(treasuryResult.total) : 0) + totalExternalContributions;
 
+    // إجمالي الذمم غير المسددة
+    let totalUnpaidDebts = 0;
+    try {
+      const unpaidDebtsResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM debts WHERE status = 'unpaid'");
+      totalUnpaidDebts = unpaidDebtsResult ? parseFloat(unpaidDebtsResult.total) : 0;
+    } catch (e) {
+      console.error("Error fetching debts:", e);
+    }
+
     let monthlyRevenueSubscriptions = 0;
     let monthlyRevenueContributions = 0;
     let monthlyExternalContributions = 0;
@@ -137,6 +146,7 @@ router.get('/', async (req, res) => {
       totalExpenses,
       totalExternalContributions,
       externalContributorsCount,
+      totalUnpaidDebts,
       netTreasury: totalTreasury - totalExpenses,
       paidSubscriptionsCount,
       paidContributionsCount,

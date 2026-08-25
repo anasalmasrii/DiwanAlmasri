@@ -128,6 +128,19 @@ export async function initDatabase() {
       )
     `);
 
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS debts (
+        id SERIAL PRIMARY KEY,
+        amount REAL NOT NULL,
+        description TEXT NOT NULL,
+        creditor_name VARCHAR(255),
+        debt_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        status VARCHAR(50) DEFAULT 'unpaid',
+        paid_date DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // التحقق من وجود المسؤول الرئيسي
     const { rows } = await pgPool.query("SELECT id FROM users WHERE username = 'admin'");
     if (rows.length === 0) {
@@ -235,6 +248,19 @@ export async function initDatabase() {
       qualification TEXT,
       request_date DATE NOT NULL DEFAULT (date('now')),
       status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  sqliteDb.run(`
+    CREATE TABLE IF NOT EXISTS debts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      amount REAL NOT NULL,
+      description TEXT NOT NULL,
+      creditor_name TEXT,
+      debt_date DATE NOT NULL DEFAULT (date('now')),
+      status TEXT DEFAULT 'unpaid',
+      paid_date DATE,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);

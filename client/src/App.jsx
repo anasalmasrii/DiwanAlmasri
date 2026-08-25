@@ -15,6 +15,7 @@ import PaymentsPage from './pages/PaymentsPage';
 import DefaultersPage from './pages/DefaultersPage';
 import SettingsPage from './pages/SettingsPage';
 import ExpensesPage from './pages/ExpensesPage';
+import DebtsPage from './pages/DebtsPage';
 import ReportsPage from './pages/ReportsPage';
 import ExternalContributionsPage from './pages/ExternalContributionsPage';
 import { useState } from 'react';
@@ -110,6 +111,14 @@ export default function App() {
         element={
           <ProtectedRoute permission="expenses">
             <AppLayout><ExpensesPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/debts"
+        element={
+          <ProtectedRoute permission="expenses">
+            <AppLayout><DebtsPage /></AppLayout>
           </ProtectedRoute>
         }
       />
