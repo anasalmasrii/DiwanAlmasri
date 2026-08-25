@@ -25,9 +25,12 @@ export default function StatCard({ icon, value, label, color = 'gold', suffix = 
 
     const timer = setInterval(() => {
       step++;
-      current = Math.min(Math.round(stepValue * step), numValue);
-      setDisplayValue(current);
-      if (step >= steps) clearInterval(timer);
+      if (step >= steps) {
+        setDisplayValue(numValue);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(Number.isInteger(numValue) ? Math.round(stepValue * step) : stepValue * step);
+      }
     }, duration / steps);
 
     return () => clearInterval(timer);
@@ -38,7 +41,7 @@ export default function StatCard({ icon, value, label, color = 'gold', suffix = 
       <div className="stat-card-icon">{icon}</div>
       <div className="stat-card-value">
         {typeof value === 'number' && !isNaN(value)
-          ? displayValue.toLocaleString('en-US')
+          ? displayValue.toLocaleString('en-US', suffix === 'د.أ' ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {})
           : value}
         {suffix && <span style={{ fontSize: '0.5em', marginRight: '4px' }}>{suffix}</span>}
       </div>
