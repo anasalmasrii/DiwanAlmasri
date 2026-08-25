@@ -44,10 +44,33 @@ router.put('/:id/pay', async (req, res) => {
     const { status, paid_date } = req.body;
     
     const db = getDb();
+
+    // جلب معلومات الذمة
+    const debt = await db.get("SELECT * FROM debts WHERE id = ?", [id]);
+    if (!debt) {
+      return res.status(404).json({ error: 'الذمة غير موجودة' });
+    }
+
+    const finalPaidDate = paid_date || new Date().toISOString().split('T')[0];
+
     await db.run(
       "UPDATE debts SET status = ?, paid_date = ? WHERE id = ?",
-      [status, status === 'paid' ? (paid_date || new Date().toISOString().split('T')[0]) : null, id]
+      [status, status === 'paid' ? finalPaidDate : null, id]
     );
+
+    // إضافة الذمة للمصاريف عند التسديد
+    if (status === 'paid' && debt.status !== 'paid') {
+      const expenseDesc = `سداد ذمة: ${debt.description}${debt.creditor_name ? ` (${debt.creditor_name})` : ''}`;
+      const d = new Date(finalPaidDate);
+      const month = d.getMonth() + 1;
+      const year = d.getFullYear();
+
+      await db.run(
+        "INSERT INTO expenses (amount, description, expense_date, month, year, category) VALUES (?, ?, ?, ?, ?, 'أخرى')",
+        [debt.amount, expenseDesc, finalPaidDate, month, year]
+      );
+    }
+
     res.json({ success: true });
   } catch (error) {
     console.error(error);
