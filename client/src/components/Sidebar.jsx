@@ -18,8 +18,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { path: '/payments', icon: '💰', label: 'الاشتراكات والدفعات', perm: 'payments' },
     { path: '/defaulters', icon: '⚠️', label: 'المتخلفين عن السداد', perm: 'defaulters' },
     { path: '/expenses', icon: '🛠️', label: 'مصاريف وصيانة الديوان', perm: 'expenses' },
-    { path: '/debts', icon: '📜', label: 'ذمم على الديوان', perm: 'expenses' },
-    { path: '/vouchers', icon: '🧾', label: 'السندات والفواتير', perm: 'expenses' },
+    { path: '/vouchers', icon: '🧾', label: 'النظام المحاسبي', perm: 'expenses' },
     { path: '/external-contributions', icon: '🤝', label: 'مساهمات خارج الأعضاء', perm: 'members' },
     { path: '/reports', icon: '📄', label: 'التقارير والطباعة', perm: null },
   ];

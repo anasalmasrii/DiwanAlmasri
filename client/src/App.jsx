@@ -115,14 +115,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/debts"
-        element={
-          <ProtectedRoute permission="expenses">
-            <AppLayout><DebtsPage /></AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/debts" element={<Navigate to="/vouchers" replace />} />
       <Route
         path="/vouchers"
         element={
