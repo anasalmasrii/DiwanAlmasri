@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 // ============================================================
@@ -13,6 +13,7 @@ function VouchersTab({ apiFetch }) {
   const [printVoucher, setPrintVoucher] = useState(null);
   const [editingVoucher, setEditingVoucher] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [expenseConfirm, setExpenseConfirm] = useState(null);
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -98,6 +99,26 @@ function VouchersTab({ apiFetch }) {
 
   const totalReceipt = filtered.filter(v => v.voucher_type === 'receipt').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
   const totalPayment = filtered.filter(v => v.voucher_type === 'payment').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
+
+    const handleAddToExpenses = async () => {
+    if (!expenseConfirm) return;
+    try {
+      const inv = expenseConfirm;
+      const description = "ÙØ§ØªÙˆØ±Ø© #" + inv.invoice_number + " â€” " + inv.customer_name;
+      const res = await apiFetch('/api/expenses', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: parseFloat(inv.total || 0),
+          description,
+          expense_date: inv.invoice_date ? inv.invoice_date.split('T')[0] : new Date().toISOString().split('T')[0],
+          category: 'ÙÙˆØ§ØªÙŠØ±',
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); showToast(d.error || 'Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø¥Ø¶Ø§ÙØ©', 'error'); return; }
+      showToast('ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ Ø¨Ù†Ø¬Ø§Ø­');
+      setExpenseConfirm(null);
+    } catch { showToast('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø¥Ø¶Ø§ÙØ©', 'error'); }
+  };
 
   if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
 
@@ -302,6 +323,30 @@ function VouchersTab({ apiFetch }) {
         </div>
       )}
 
+            {expenseConfirm && (
+        <div className="modal-overlay" onClick={() => setExpenseConfirm(null)}>
+          <div className="modal" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">ðŸ“¤ Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</h3>
+              <button className="modal-close" onClick={() => setExpenseConfirm(null)}>âœ•</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '12px' }}>Ø³ÙŠØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ù…ØµØ±ÙˆÙ Ø¬Ø¯ÙŠØ¯ Ø¨Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªØ§Ù„ÙŠØ©:</p>
+              <div style={{ background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', padding: '14px 18px', fontSize: '0.95rem' }}>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ø¨ÙŠØ§Ù†:</span> <strong>ÙØ§ØªÙˆØ±Ø© #{expenseConfirm.invoice_number} â€” {expenseConfirm.customer_name}</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ù…Ø¨Ù„Øº:</span> <strong style={{ color: 'var(--danger)' }}>{parseFloat(expenseConfirm.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} Ø¯.Ø£</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ØªØ§Ø±ÙŠØ®:</span> <strong>{expenseConfirm.invoice_date ? expenseConfirm.invoice_date.split('T')[0] : 'â€”'}</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ÙØ¦Ø©:</span> <strong>ÙÙˆØ§ØªÙŠØ±</strong></div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={handleAddToExpenses}>âœ… Ù†Ø¹Ù…ØŒ Ø£Ø¶Ù Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</button>
+              <button className="btn btn-secondary" onClick={() => setExpenseConfirm(null)}>Ø¥Ù„ØºØ§Ø¡</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
@@ -337,6 +382,7 @@ function DebtsTab({ apiFetch }) {
   const [showModal, setShowModal] = useState(false);
   const [editingDebt, setEditingDebt] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [expenseConfirm, setExpenseConfirm] = useState(null);
   const [payConfirm, setPayConfirm] = useState(null);
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -422,6 +468,26 @@ function DebtsTab({ apiFetch }) {
   });
 
   const totalAmount = filtered.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+    const handleAddToExpenses = async () => {
+    if (!expenseConfirm) return;
+    try {
+      const inv = expenseConfirm;
+      const description = "ÙØ§ØªÙˆØ±Ø© #" + inv.invoice_number + " â€” " + inv.customer_name;
+      const res = await apiFetch('/api/expenses', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: parseFloat(inv.total || 0),
+          description,
+          expense_date: inv.invoice_date ? inv.invoice_date.split('T')[0] : new Date().toISOString().split('T')[0],
+          category: 'ÙÙˆØ§ØªÙŠØ±',
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); showToast(d.error || 'Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø¥Ø¶Ø§ÙØ©', 'error'); return; }
+      showToast('ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ Ø¨Ù†Ø¬Ø§Ø­');
+      setExpenseConfirm(null);
+    } catch { showToast('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø¥Ø¶Ø§ÙØ©', 'error'); }
+  };
 
   if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
 
@@ -569,6 +635,30 @@ function DebtsTab({ apiFetch }) {
       )}
 
       {/* مودال الحذف */}
+            {expenseConfirm && (
+        <div className="modal-overlay" onClick={() => setExpenseConfirm(null)}>
+          <div className="modal" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">ðŸ“¤ Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</h3>
+              <button className="modal-close" onClick={() => setExpenseConfirm(null)}>âœ•</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '12px' }}>Ø³ÙŠØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ù…ØµØ±ÙˆÙ Ø¬Ø¯ÙŠØ¯ Ø¨Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªØ§Ù„ÙŠØ©:</p>
+              <div style={{ background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', padding: '14px 18px', fontSize: '0.95rem' }}>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ø¨ÙŠØ§Ù†:</span> <strong>ÙØ§ØªÙˆØ±Ø© #{expenseConfirm.invoice_number} â€” {expenseConfirm.customer_name}</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ù…Ø¨Ù„Øº:</span> <strong style={{ color: 'var(--danger)' }}>{parseFloat(expenseConfirm.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} Ø¯.Ø£</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ØªØ§Ø±ÙŠØ®:</span> <strong>{expenseConfirm.invoice_date ? expenseConfirm.invoice_date.split('T')[0] : 'â€”'}</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ÙØ¦Ø©:</span> <strong>ÙÙˆØ§ØªÙŠØ±</strong></div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={handleAddToExpenses}>âœ… Ù†Ø¹Ù…ØŒ Ø£Ø¶Ù Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</button>
+              <button className="btn btn-secondary" onClick={() => setExpenseConfirm(null)}>Ø¥Ù„ØºØ§Ø¡</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
@@ -604,6 +694,7 @@ function InvoicesTab({ apiFetch }) {
   const [printInvoice, setPrintInvoice] = useState(null);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [expenseConfirm, setExpenseConfirm] = useState(null);
   const [toast, setToast] = useState(null);
   const [formError, setFormError] = useState('');
   const now = new Date();
@@ -719,6 +810,26 @@ function InvoicesTab({ apiFetch }) {
       setDeleteConfirm(null);
       loadInvoices();
     } catch { showToast('حدث خطأ أثناء الحذف', 'error'); }
+  };
+
+    const handleAddToExpenses = async () => {
+    if (!expenseConfirm) return;
+    try {
+      const inv = expenseConfirm;
+      const description = "ÙØ§ØªÙˆØ±Ø© #" + inv.invoice_number + " â€” " + inv.customer_name;
+      const res = await apiFetch('/api/expenses', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: parseFloat(inv.total || 0),
+          description,
+          expense_date: inv.invoice_date ? inv.invoice_date.split('T')[0] : new Date().toISOString().split('T')[0],
+          category: 'ÙÙˆØ§ØªÙŠØ±',
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); showToast(d.error || 'Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø¥Ø¶Ø§ÙØ©', 'error'); return; }
+      showToast('ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ Ø¨Ù†Ø¬Ø§Ø­');
+      setExpenseConfirm(null);
+    } catch { showToast('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø¥Ø¶Ø§ÙØ©', 'error'); }
   };
 
   if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
@@ -957,6 +1068,30 @@ function InvoicesTab({ apiFetch }) {
       )}
 
       {/* مودال الحذف */}
+            {expenseConfirm && (
+        <div className="modal-overlay" onClick={() => setExpenseConfirm(null)}>
+          <div className="modal" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">ðŸ“¤ Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</h3>
+              <button className="modal-close" onClick={() => setExpenseConfirm(null)}>âœ•</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '12px' }}>Ø³ÙŠØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ù…ØµØ±ÙˆÙ Ø¬Ø¯ÙŠØ¯ Ø¨Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªØ§Ù„ÙŠØ©:</p>
+              <div style={{ background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', padding: '14px 18px', fontSize: '0.95rem' }}>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ø¨ÙŠØ§Ù†:</span> <strong>ÙØ§ØªÙˆØ±Ø© #{expenseConfirm.invoice_number} â€” {expenseConfirm.customer_name}</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ù…Ø¨Ù„Øº:</span> <strong style={{ color: 'var(--danger)' }}>{parseFloat(expenseConfirm.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} Ø¯.Ø£</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ØªØ§Ø±ÙŠØ®:</span> <strong>{expenseConfirm.invoice_date ? expenseConfirm.invoice_date.split('T')[0] : 'â€”'}</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ÙØ¦Ø©:</span> <strong>ÙÙˆØ§ØªÙŠØ±</strong></div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={handleAddToExpenses}>âœ… Ù†Ø¹Ù…ØŒ Ø£Ø¶Ù Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</button>
+              <button className="btn btn-secondary" onClick={() => setExpenseConfirm(null)}>Ø¥Ù„ØºØ§Ø¡</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
