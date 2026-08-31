@@ -66,6 +66,15 @@ router.post('/', async (req, res) => {
       );
     }
 
+    if (payment_type === 'credit') {
+      await db.run(
+        "INSERT INTO debts (amount, description, creditor_name, debt_date, status, invoice_id) VALUES (?, ?, ?, ?, 'unpaid', ?)",
+        [total, `فاتورة ذمم #${invoice_number}`, customer_name, invoice_date, invoiceId]
+      );
+    }
+
+    if (typeof saveDatabase === 'function') saveDatabase();
+
     const invoice = await db.get('SELECT * FROM invoices WHERE id = ?', [invoiceId]);
     const savedItems = await db.all('SELECT * FROM invoice_items WHERE invoice_id = ?', [invoiceId]);
     res.json({ ...invoice, items: savedItems });
@@ -102,6 +111,28 @@ router.put('/:id', async (req, res) => {
       );
     }
 
+    // مزامنة الذمم
+    const existingDebt = await db.get('SELECT * FROM debts WHERE invoice_id = ?', [id]);
+    if (payment_type === 'credit') {
+      if (existingDebt) {
+        await db.run(
+          'UPDATE debts SET amount = ?, description = ?, creditor_name = ?, debt_date = ? WHERE id = ?',
+          [total, `فاتورة ذمم #${invoice_number}`, customer_name, invoice_date, existingDebt.id]
+        );
+      } else {
+        await db.run(
+          "INSERT INTO debts (amount, description, creditor_name, debt_date, status, invoice_id) VALUES (?, ?, ?, ?, 'unpaid', ?)",
+          [total, `فاتورة ذمم #${invoice_number}`, customer_name, invoice_date, id]
+        );
+      }
+    } else {
+      if (existingDebt && existingDebt.status === 'unpaid') {
+        await db.run('DELETE FROM debts WHERE id = ?', [existingDebt.id]);
+      }
+    }
+
+    if (typeof saveDatabase === 'function') saveDatabase();
+
     const invoice = await db.get('SELECT * FROM invoices WHERE id = ?', [id]);
     const savedItems = await db.all('SELECT * FROM invoice_items WHERE invoice_id = ?', [id]);
     res.json({ ...invoice, items: savedItems });
@@ -114,7 +145,9 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const db = getDb();
+    await db.run('DELETE FROM debts WHERE invoice_id = ?', [req.params.id]);
     await db.run('DELETE FROM invoices WHERE id = ?', [req.params.id]);
+    if (typeof saveDatabase === 'function') saveDatabase();
     res.json({ message: 'تم حذف الفاتورة بنجاح' });
   } catch (err) {
     res.status(500).json({ error: err.message });

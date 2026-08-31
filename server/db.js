@@ -185,6 +185,8 @@ export async function initDatabase() {
       )
     `);
 
+    await pgPool.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS invoice_id INTEGER REFERENCES invoices(id) ON DELETE SET NULL;`);
+
     // التحقق من وجود المسؤول الرئيسي
     const { rows } = await pgPool.query("SELECT id FROM users WHERE username = 'admin'");
     if (rows.length === 0) {
@@ -395,6 +397,23 @@ function runMigrations() {
 
   const invoiceCols = getColumnNames('invoices');
   if (!invoiceCols.includes('is_transferred')) { try { sqliteDb.run("ALTER TABLE invoices ADD COLUMN is_transferred INTEGER DEFAULT 0"); } catch(e) {} }
+
+  const debtCols = getColumnNames('debts');
+  if (!debtCols.includes('invoice_id')) { try { sqliteDb.run("ALTER TABLE debts ADD COLUMN invoice_id INTEGER"); } catch(e) {} }
+
+  // مزامنة فواتير الذمم الموجودة إلى جدول الذمم تلقائياً
+  try {
+    const unsynced = sqliteDb.exec("SELECT id, invoice_number, invoice_date, customer_name, total FROM invoices WHERE payment_type = 'credit' AND id NOT IN (SELECT invoice_id FROM debts WHERE invoice_id IS NOT NULL)");
+    if (unsynced && unsynced.length > 0 && unsynced[0].values) {
+      for (const row of unsynced[0].values) {
+        const [id, invNum, invDate, custName, total] = row;
+        sqliteDb.run(
+          "INSERT INTO debts (amount, description, creditor_name, debt_date, status, invoice_id) VALUES (?, ?, ?, ?, 'unpaid', ?)",
+          [total, `فاتورة ذمم #${invNum}`, custName, invDate, id]
+        );
+      }
+    }
+  } catch(e) {}
 
   saveDatabase();
 }
