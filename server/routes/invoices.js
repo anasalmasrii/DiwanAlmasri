@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDb } from '../db.js';
+import { getDb, saveDatabase } from '../db.js';
 
 const router = express.Router();
 
@@ -144,7 +144,9 @@ router.post('/:id/transfer', async (req, res) => {
       [parseFloat(invoice.total || 0), description, expenseDate, month, year, 'فواتير']
     );
 
-    await db.run('UPDATE invoices SET is_transferred = 1 WHERE id = ?', [id]);
+    await db.run('UPDATE invoices SET is_transferred = TRUE WHERE id = ?', [id]);
+
+    if (typeof saveDatabase === 'function') saveDatabase();
 
     res.json({ success: true, message: 'تم ترحيل الفاتورة إلى المصاريف بنجاح' });
   } catch (err) {
