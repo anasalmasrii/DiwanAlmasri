@@ -2,113 +2,121 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function VouchersPage() {
-  const { user } = useAuth();
+  const { apiFetch } = useAuth();
   const [vouchers, setVouchers] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentVoucher, setCurrentVoucher] = useState(null);
-  
-  // فلاتر البحث
-  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingVoucher, setEditingVoucher] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [formError, setFormError] = useState('');
 
-  const [formData, setFormData] = useState({
+  const now = new Date();
+
+  const [form, setForm] = useState({
     voucher_type: 'receipt',
     amount: '',
     member_id: '',
     description: '',
-    voucher_date: new Date().toISOString().split('T')[0],
+    voucher_date: now.toISOString().split('T')[0],
   });
 
   useEffect(() => {
-    fetchData();
+    loadData();
   }, []);
 
-  const fetchData = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const [vouchersRes, membersRes] = await Promise.all([
-        fetch('/api/vouchers'),
-        fetch('/api/members')
+      const [vRes, mRes] = await Promise.all([
+        apiFetch('/api/vouchers'),
+        apiFetch('/api/members'),
       ]);
-      
-      if (!vouchersRes.ok) throw new Error('خطأ في جلب السندات');
-      if (!membersRes.ok) throw new Error('خطأ في جلب الأعضاء');
-      
-      const vouchersData = await vouchersRes.json();
-      const membersData = await membersRes.json();
-      
-      setVouchers(vouchersData);
-      setMembers(membersData);
+      const vData = await vRes.json();
+      const mData = await mRes.json();
+      setVouchers(Array.isArray(vData) ? vData : []);
+      setMembers(Array.isArray(mData) ? mData : []);
     } catch (err) {
-      setError(err.message);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenModal = (voucher = null) => {
-    if (voucher) {
-      setCurrentVoucher(voucher);
-      setFormData({
-        voucher_type: voucher.voucher_type,
-        amount: voucher.amount,
-        member_id: voucher.member_id,
-        description: voucher.description || '',
-        voucher_date: voucher.voucher_date,
-      });
-    } else {
-      setCurrentVoucher(null);
-      setFormData({
-        voucher_type: 'receipt',
-        amount: '',
-        member_id: '',
-        description: '',
-        voucher_date: new Date().toISOString().split('T')[0],
-      });
-    }
-    setIsModalOpen(true);
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setCurrentVoucher(null);
+  const openAddModal = () => {
+    setEditingVoucher(null);
+    setFormError('');
+    setForm({
+      voucher_type: 'receipt',
+      amount: '',
+      member_id: '',
+      description: '',
+      voucher_date: now.toISOString().split('T')[0],
+    });
+    setShowModal(true);
+  };
+
+  const openEditModal = (voucher) => {
+    setEditingVoucher(voucher);
+    setFormError('');
+    setForm({
+      voucher_type: voucher.voucher_type,
+      amount: voucher.amount,
+      member_id: voucher.member_id,
+      description: voucher.description || '',
+      voucher_date: voucher.voucher_date ? voucher.voucher_date.split('T')[0] : '',
+    });
+    setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+    if (!form.amount || !form.member_id || !form.voucher_date) {
+      setFormError('يرجى تعبئة جميع الحقول المطلوبة');
+      return;
+    }
     try {
-      const url = currentVoucher ? `/api/vouchers/${currentVoucher.id}` : '/api/vouchers';
-      const method = currentVoucher ? 'PUT' : 'POST';
+      const isEditing = !!editingVoucher;
+      const url = isEditing ? `/api/vouchers/${editingVoucher.id}` : '/api/vouchers';
+      const method = isEditing ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...form, amount: parseFloat(form.amount), member_id: parseInt(form.member_id) }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'خطأ في حفظ السند');
+        setFormError(data.error || 'خطأ في الحفظ');
+        return;
       }
 
-      await fetchData();
-      handleCloseModal();
-    } catch (err) {
-      alert(err.message);
+      showToast(isEditing ? 'تم تعديل السند بنجاح' : 'تم إضافة السند بنجاح');
+      setShowModal(false);
+      loadData();
+    } catch {
+      setFormError('حدث خطأ أثناء الحفظ');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا السند؟')) return;
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
     try {
-      const res = await fetch(`/api/vouchers/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('خطأ في حذف السند');
-      setVouchers(vouchers.filter(v => v.id !== id));
-    } catch (err) {
-      alert(err.message);
+      await apiFetch(`/api/vouchers/${deleteConfirm.id}`, { method: 'DELETE' });
+      showToast('تم حذف السند بنجاح');
+      setDeleteConfirm(null);
+      loadData();
+    } catch {
+      showToast('حدث خطأ أثناء الحذف', 'error');
     }
   };
 
@@ -121,192 +129,285 @@ export default function VouchersPage() {
     }
   };
 
-  const getTypeStyle = (type) => {
+  const getTypeBadge = (type) => {
     switch (type) {
-      case 'receipt': return { backgroundColor: 'var(--success-color, #2e7d32)', color: 'white' };
-      case 'payment': return { backgroundColor: 'var(--danger-color, #d32f2f)', color: 'white' };
-      case 'invoice': return { backgroundColor: 'var(--primary-color, #1976d2)', color: 'white' };
-      default: return {};
+      case 'receipt': return 'badge-active';
+      case 'payment': return 'badge-danger';
+      case 'invoice': return 'badge-warning';
+      default: return '';
     }
   };
 
-  const filteredVouchers = useMemo(() => {
+  const filtered = useMemo(() => {
     return vouchers.filter(v => {
       const matchesType = filterType === 'all' || v.voucher_type === filterType;
-      const matchesSearch = v.member_name?.includes(searchTerm) || v.description?.includes(searchTerm);
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !q ||
+        (v.member_name || '').toLowerCase().includes(q) ||
+        (v.description || '').toLowerCase().includes(q);
       return matchesType && matchesSearch;
     });
-  }, [vouchers, filterType, searchTerm]);
+  }, [vouchers, filterType, searchQuery]);
 
-  if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
+  const totalReceipt = filtered.filter(v => v.voucher_type === 'receipt').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
+  const totalPayment = filtered.filter(v => v.voucher_type === 'payment').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
+  const totalInvoice = filtered.filter(v => v.voucher_type === 'invoice').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
+
+  if (loading) return (
+    <div className="loading-spinner">
+      <div className="spinner"></div>
+    </div>
+  );
 
   return (
-    <div className="page-container">
+    <div>
       <div className="page-header">
-        <h1>السندات المحاسبية والفواتير</h1>
-        <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-          <i className="fas fa-plus"></i> إضافة سند جديد
+        <div>
+          <h2 className="page-title">
+            <span>🧾</span>
+            <span>السندات المحاسبية والفواتير</span>
+          </h2>
+          <p className="page-description">إدارة سندات القبض والصرف والفواتير النقدية مرتبطةً بالأعضاء</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAddModal}>
+          ➕ إضافة سند جديد
         </button>
       </div>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+      {/* إحصائيات سريعة */}
+      <div className="stats-grid" style={{ marginBottom: '20px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+        <div className="card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>إجمالي سندات القبض</span>
+          <span style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--success)' }}>
+            {totalReceipt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} د.أ
+          </span>
+        </div>
+        <div className="card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>إجمالي سندات الصرف</span>
+          <span style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--danger)' }}>
+            {totalPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} د.أ
+          </span>
+        </div>
+        <div className="card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>إجمالي الفواتير النقدية</span>
+          <span style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--warning)' }}>
+            {totalInvoice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} د.أ
+          </span>
+        </div>
+      </div>
 
-      <div className="filters-card card">
-        <div className="filters-grid">
-          <div className="form-group">
-            <label>بحث (عضو أو بيان)</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="ابحث هنا..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label>نوع السند</label>
-            <select
-              className="form-control"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="all">الكل</option>
-              <option value="receipt">سند قبض</option>
-              <option value="payment">سند صرف</option>
-              <option value="invoice">فاتورة نقدي</option>
-            </select>
+      {/* فلاتر البحث */}
+      <div className="card" style={{ marginBottom: '20px' }}>
+        <div className="card-body" style={{ padding: '16px 24px' }}>
+          <div className="form-row" style={{ alignItems: 'flex-end' }}>
+            <div className="form-group">
+              <label className="form-label">نوع السند</label>
+              <select className="form-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
+                <option value="all">الكل</option>
+                <option value="receipt">سند قبض</option>
+                <option value="payment">سند صرف</option>
+                <option value="invoice">فاتورة نقدي</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ flexGrow: 1 }}>
+              <label className="form-label">بحث</label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+                <input
+                  type="text"
+                  className="form-input"
+                  style={{ paddingRight: '36px' }}
+                  placeholder="ابحث باسم العضو أو البيان..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* الجدول */}
       <div className="card">
-        <div className="table-responsive">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>التاريخ</th>
-                <th>النوع</th>
-                <th>العضو</th>
-                <th>المبلغ</th>
-                <th>البيان</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredVouchers.length > 0 ? (
-                filteredVouchers.map((voucher) => (
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <h3 className="card-title" style={{ margin: 0 }}>
+            <span>📋</span>
+            <span>سجل السندات ({filtered.length})</span>
+          </h3>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">🧾</div>
+            <div className="empty-state-text">لا توجد سندات لعرضها</div>
+          </div>
+        ) : (
+          <div className="table-wrapper">
+            <table className="data-table mobile-cards-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>التاريخ</th>
+                  <th>النوع</th>
+                  <th>العضو</th>
+                  <th>المبلغ</th>
+                  <th>البيان</th>
+                  <th>الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((voucher, idx) => (
                   <tr key={voucher.id}>
-                    <td>{voucher.voucher_date}</td>
-                    <td>
-                      <span className="badge" style={getTypeStyle(voucher.voucher_type)}>
+                    <td data-label="#">{idx + 1}</td>
+                    <td data-label="التاريخ">{voucher.voucher_date ? voucher.voucher_date.split('T')[0] : '—'}</td>
+                    <td data-label="النوع">
+                      <span className={`badge ${getTypeBadge(voucher.voucher_type)}`}>
                         {getTypeName(voucher.voucher_type)}
                       </span>
                     </td>
-                    <td>{voucher.member_name}</td>
-                    <td className="amount" style={{ fontWeight: 'bold' }}>{voucher.amount.toLocaleString()}</td>
-                    <td>{voucher.description}</td>
-                    <td>
+                    <td data-label="العضو" style={{ fontWeight: 600 }}>{voucher.member_name || '—'}</td>
+                    <td data-label="المبلغ" style={{ fontWeight: 700, color: voucher.voucher_type === 'receipt' ? 'var(--success)' : 'var(--danger)' }}>
+                      {parseFloat(voucher.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} د.أ
+                    </td>
+                    <td data-label="البيان">{voucher.description || '—'}</td>
+                    <td data-label="الإجراءات">
                       <div className="action-buttons">
-                        <button className="btn btn-icon btn-edit" onClick={() => handleOpenModal(voucher)} title="تعديل">
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button className="btn btn-icon btn-delete" onClick={() => handleDelete(voucher.id)} title="حذف">
-                          <i className="fas fa-trash"></i>
-                        </button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(voucher)} title="تعديل">✏️</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(voucher)} title="حذف">🗑️</button>
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center">لا توجد سندات مطابقة للبحث</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+      {/* مودال الإضافة / التعديل */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
             <div className="modal-header">
-              <h2>{currentVoucher ? 'تعديل سند' : 'إضافة سند جديد'}</h2>
-              <button className="btn-close" onClick={handleCloseModal}>&times;</button>
+              <h3 className="modal-title">{editingVoucher ? '✏️ تعديل السند' : '➕ إضافة سند جديد'}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
-            <form onSubmit={handleSubmit} className="modal-body">
-              <div className="form-group">
-                <label>نوع السند *</label>
-                <select
-                  className="form-control"
-                  value={formData.voucher_type}
-                  onChange={(e) => setFormData({ ...formData, voucher_type: e.target.value })}
-                  required
-                >
-                  <option value="receipt">سند قبض</option>
-                  <option value="payment">سند صرف</option>
-                  <option value="invoice">فاتورة نقدي</option>
-                </select>
-              </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">نوع السند *</label>
+                  <select
+                    className="form-select"
+                    value={form.voucher_type}
+                    onChange={e => setForm({ ...form, voucher_type: e.target.value })}
+                    required
+                  >
+                    <option value="receipt">🟢 سند قبض</option>
+                    <option value="payment">🔴 سند صرف</option>
+                    <option value="invoice">🟡 فاتورة نقدي</option>
+                  </select>
+                </div>
 
-              <div className="form-group">
-                <label>العضو *</label>
-                <select
-                  className="form-control"
-                  value={formData.member_id}
-                  onChange={(e) => setFormData({ ...formData, member_id: e.target.value })}
-                  required
-                >
-                  <option value="">-- اختر العضو --</option>
-                  {members.map(member => (
-                    <option key={member.id} value={member.id}>
-                      {member.full_name} {member.national_id ? `(${member.national_id})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div className="form-group">
+                  <label className="form-label">العضو *</label>
+                  <select
+                    className="form-select"
+                    value={form.member_id}
+                    onChange={e => setForm({ ...form, member_id: e.target.value })}
+                    required
+                  >
+                    <option value="">-- اختر العضو --</option>
+                    {members.map(member => (
+                      <option key={member.id} value={member.id}>
+                        {member.full_name}{member.national_id ? ` — ${member.national_id}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="form-group">
-                <label>المبلغ *</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  required
-                  min="0"
-                  step="any"
-                />
-              </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">المبلغ (د.أ) *</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="0.00"
+                      step="0.001"
+                      min="0"
+                      value={form.amount}
+                      onChange={e => setForm({ ...form, amount: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">التاريخ *</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={form.voucher_date}
+                      onChange={e => setForm({ ...form, voucher_date: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
 
-              <div className="form-group">
-                <label>التاريخ *</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={formData.voucher_date}
-                  onChange={(e) => setFormData({ ...formData, voucher_date: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="form-group">
+                  <label className="form-label">البيان / الوصف</label>
+                  <textarea
+                    className="form-input"
+                    placeholder="وصف العملية..."
+                    rows="3"
+                    value={form.description}
+                    onChange={e => setForm({ ...form, description: e.target.value })}
+                    style={{ resize: 'vertical' }}
+                  />
+                </div>
 
-              <div className="form-group">
-                <label>البيان / الوصف</label>
-                <textarea
-                  className="form-control"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows="3"
-                ></textarea>
+                {formError && (
+                  <div style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '8px', padding: '8px 12px', background: 'var(--danger-bg)', borderRadius: 'var(--radius-sm)' }}>
+                    ⚠️ {formError}
+                  </div>
+                )}
               </div>
-
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>إلغاء</button>
-                <button type="submit" className="btn btn-primary">حفظ السند</button>
+                <button type="submit" className="btn btn-primary">
+                  {editingVoucher ? '💾 حفظ التعديلات' : '➕ إضافة السند'}
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>إلغاء</button>
               </div>
             </form>
           </div>
         </div>
+      )}
+
+      {/* مودال الحذف */}
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">🗑️ حذف السند</h3>
+              <button className="modal-close" onClick={() => setDeleteConfirm(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p>هل أنت متأكد من حذف هذا السند؟</p>
+              <p style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1.1rem' }}>
+                {getTypeName(deleteConfirm.voucher_type)} — {deleteConfirm.member_name}
+              </p>
+              <p style={{ color: 'var(--text-muted)' }}>
+                المبلغ: {parseFloat(deleteConfirm.amount).toLocaleString('en-US')} د.أ
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-danger" onClick={handleDelete}>🗑️ نعم، احذف</button>
+              <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* رسالة Toast */}
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>{toast.message}</div>
       )}
     </div>
   );
