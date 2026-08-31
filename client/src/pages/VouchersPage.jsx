@@ -1001,7 +1001,14 @@ function InvoicesTab({ apiFetch }) {
               <tbody>
                 {invoices.map((inv) => (
                   <tr key={inv.id}>
-                    <td data-label="رقم الفاتورة" style={{ fontWeight: 700, color: 'var(--accent)' }}>#{inv.invoice_number}</td>
+                    <td
+                      data-label="رقم الفاتورة"
+                      style={{ fontWeight: 700, color: 'var(--accent)', cursor: 'pointer' }}
+                      onClick={() => openPrint(inv)}
+                      title="اضغط لعرض الفاتورة"
+                    >
+                      #{inv.invoice_number} 🔍
+                    </td>
                     <td data-label="التاريخ">{inv.invoice_date ? inv.invoice_date.split('T')[0] : '—'}</td>
                     <td data-label="العميل" style={{ fontWeight: 600 }}>{inv.customer_name}</td>
                     <td data-label="نوع الدفع">
@@ -1025,6 +1032,7 @@ function InvoicesTab({ apiFetch }) {
                     </td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
+                        <button className="btn btn-secondary btn-sm" onClick={() => openPrint(inv)} title="عرض الفاتورة">👁️ عرض</button>
                         <button className="btn btn-primary btn-sm" onClick={() => openPrint(inv)} title="طباعة">🖨️</button>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(inv)} title="تعديل">✏️</button>
                         {inv.is_transferred ? (
@@ -1239,10 +1247,17 @@ function InvoicesTab({ apiFetch }) {
         </div>
       )}
 
-      {/* مودال الطباعة */}
+      {/* مودال عرض وطباعة الفاتورة */}
       {showPrint && printInvoice && (
         <div className="modal-overlay" onClick={() => setShowPrint(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px', width: '95%', background: 'white', color: '#000' }}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '750px', width: '95%', background: 'white', color: '#000', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>📄</span>
+                <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>معاينة الفاتورة #{printInvoice.invoice_number}</strong>
+              </div>
+              <button className="modal-close" onClick={() => setShowPrint(false)}>✕</button>
+            </div>
             <div style={{ padding: '24px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }} id="print-area">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
                 <div>
