@@ -2,13 +2,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 // ============================================================
-// تبويب السندات والفواتير
+// تبويب السندات
 // ============================================================
 function VouchersTab({ apiFetch }) {
   const [vouchers, setVouchers] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showPrint, setShowPrint] = useState(false);
+  const [printVoucher, setPrintVoucher] = useState(null);
   const [editingVoucher, setEditingVoucher] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast] = useState(null);
@@ -18,117 +20,100 @@ function VouchersTab({ apiFetch }) {
   const now = new Date();
 
   const [form, setForm] = useState({
-    voucher_type: 'receipt',
-    amount: '',
-    member_id: '',
-    description: '',
-    voucher_date: now.toISOString().split('T')[0],
+    voucher_type: 'payment', voucher_number: '', amount: '', member_id: '',
+    party_name: '', use_member: false, description: '', voucher_date: now.toISOString().split('T')[0],
   });
-
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [vRes, mRes] = await Promise.all([apiFetch('/api/vouchers'), apiFetch('/api/members')]);
-      setVouchers(Array.isArray(await vRes.json()) ? await (await apiFetch('/api/vouchers')).json() : []);
-      setMembers(Array.isArray(await mRes.json()) ? await (await apiFetch('/api/members')).json() : []);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
 
   const reloadData = async () => {
     try {
       const [vRes, mRes] = await Promise.all([apiFetch('/api/vouchers'), apiFetch('/api/members')]);
-      const vData = await vRes.json();
-      const mData = await mRes.json();
+      const vData = await vRes.json(); const mData = await mRes.json();
       setVouchers(Array.isArray(vData) ? vData : []);
       setMembers(Array.isArray(mData) ? mData : []);
     } catch (err) { console.error(err); }
   };
 
-  useEffect(() => { reloadData(); }, []);
+  useEffect(() => { setLoading(true); reloadData().finally(() => setLoading(false)); }, []);
+
+  const fetchNextNumber = async (type) => {
+    try {
+      const res = await apiFetch(`/api/vouchers/next-number?type=${type}`);
+      const data = await res.json();
+      return data.next_number;
+    } catch { return ''; }
+  };
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const openAddModal = () => {
-    setEditingVoucher(null);
-    setFormError('');
-    setForm({ voucher_type: 'receipt', amount: '', member_id: '', description: '', voucher_date: now.toISOString().split('T')[0] });
+  const openAddModal = async () => {
+    const nextNum = await fetchNextNumber('payment');
+    setEditingVoucher(null); setFormError('');
+    setForm({ voucher_type: 'payment', voucher_number: nextNum, amount: '', member_id: '', party_name: '', use_member: false, description: '', voucher_date: now.toISOString().split('T')[0] });
     setShowModal(true);
   };
 
-  const openEditModal = (v) => {
-    setEditingVoucher(v);
-    setFormError('');
-    setForm({ voucher_type: v.voucher_type, amount: v.amount, member_id: v.member_id, description: v.description || '', voucher_date: v.voucher_date ? v.voucher_date.split('T')[0] : '' });
+  const openEditModal = async (v) => {
+    setEditingVoucher(v); setFormError('');
+    setForm({ voucher_type: v.voucher_type, voucher_number: v.voucher_number || '', amount: v.amount, member_id: v.member_id || '', party_name: v.party_name || '', use_member: !!v.member_id, description: v.description || '', voucher_date: v.voucher_date ? v.voucher_date.split('T')[0] : '' });
     setShowModal(true);
+  };
+
+  const handleTypeChange = async (type) => {
+    const nextNum = await fetchNextNumber(type);
+    setForm(f => ({ ...f, voucher_type: type, voucher_number: nextNum }));
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormError('');
-    if (!form.amount || !form.member_id || !form.voucher_date) { setFormError('يرجى تعبئة جميع الحقول المطلوبة'); return; }
+    e.preventDefault(); setFormError('');
+    if (!form.amount || !form.voucher_date) { setFormError('المبلغ والتاريخ مطلوبان'); return; }
+    if (!form.use_member && !form.party_name.trim()) { setFormError('يرجى إدخال اسم الجهة أو المستفيد'); return; }
     try {
       const isEditing = !!editingVoucher;
-      const res = await apiFetch(isEditing ? `/api/vouchers/${editingVoucher.id}` : '/api/vouchers', {
-        method: isEditing ? 'PUT' : 'POST',
-        body: JSON.stringify({ ...form, amount: parseFloat(form.amount), member_id: parseInt(form.member_id) }),
-      });
+      const payload = { voucher_type: form.voucher_type, voucher_number: form.voucher_number, amount: parseFloat(form.amount), member_id: form.use_member ? parseInt(form.member_id) : null, party_name: form.use_member ? null : form.party_name, description: form.description, voucher_date: form.voucher_date };
+      const res = await apiFetch(isEditing ? `/api/vouchers/${editingVoucher.id}` : '/api/vouchers', { method: isEditing ? 'PUT' : 'POST', body: JSON.stringify(payload) });
       if (!res.ok) { const d = await res.json(); setFormError(d.error || 'خطأ في الحفظ'); return; }
       showToast(isEditing ? 'تم تعديل السند بنجاح' : 'تم إضافة السند بنجاح');
-      setShowModal(false);
-      reloadData();
+      setShowModal(false); reloadData();
     } catch { setFormError('حدث خطأ أثناء الحفظ'); }
   };
 
   const handleDelete = async () => {
     if (!deleteConfirm) return;
-    try {
-      await apiFetch(`/api/vouchers/${deleteConfirm.id}`, { method: 'DELETE' });
-      showToast('تم حذف السند بنجاح');
-      setDeleteConfirm(null);
-      reloadData();
-    } catch { showToast('حدث خطأ أثناء الحذف', 'error'); }
+    try { await apiFetch(`/api/vouchers/${deleteConfirm.id}`, { method: 'DELETE' }); showToast('تم حذف السند بنجاح'); setDeleteConfirm(null); reloadData(); }
+    catch { showToast('حدث خطأ أثناء الحذف', 'error'); }
   };
 
-  const getTypeName = (t) => ({ receipt: 'سند قبض', payment: 'سند صرف', invoice: 'فاتورة نقدي' }[t] || t);
-  const getTypeBadge = (t) => ({ receipt: 'badge-active', payment: 'badge-danger', invoice: 'badge-warning' }[t] || '');
+  const getTypeName = (t) => ({ receipt: 'سند قبض', payment: 'سند صرف' }[t] || t);
+  const getTypeBadge = (t) => ({ receipt: 'badge-active', payment: 'badge-danger' }[t] || '');
+  const getPartyName = (v) => v.party_name || v.member_name || '—';
 
   const filtered = useMemo(() => vouchers.filter(v => {
     const matchType = filterType === 'all' || v.voucher_type === filterType;
     const q = searchQuery.toLowerCase();
-    return matchType && (!q || (v.member_name || '').toLowerCase().includes(q) || (v.description || '').toLowerCase().includes(q));
+    return matchType && (!q || getPartyName(v).toLowerCase().includes(q) || (v.description || '').toLowerCase().includes(q));
   }), [vouchers, filterType, searchQuery]);
 
   const totalReceipt = filtered.filter(v => v.voucher_type === 'receipt').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
   const totalPayment = filtered.filter(v => v.voucher_type === 'payment').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
-  const totalInvoice = filtered.filter(v => v.voucher_type === 'invoice').reduce((s, v) => s + parseFloat(v.amount || 0), 0);
 
   if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
 
   return (
     <div>
-      {/* إحصائيات */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        {[
-          { label: 'إجمالي سندات القبض', val: totalReceipt, color: 'var(--success)' },
-          { label: 'إجمالي سندات الصرف', val: totalPayment, color: 'var(--danger)' },
-          { label: 'إجمالي الفواتير النقدية', val: totalInvoice, color: 'var(--warning)' },
-        ].map(s => (
-          <div key={s.label} className="card" style={{ padding: '16px 20px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{s.label}</span>
-            <span style={{ fontWeight: 700, fontSize: '1.2rem', color: s.color }}>
-              {s.val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} د.أ
-            </span>
-          </div>
-        ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+        <div className="card" style={{ padding: '16px 20px' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>إجمالي سندات القبض</span>
+          <span style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--success)' }}>{totalReceipt.toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</span>
+        </div>
+        <div className="card" style={{ padding: '16px 20px' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>إجمالي سندات الصرف</span>
+          <span style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--danger)' }}>{totalPayment.toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</span>
+        </div>
       </div>
 
-      {/* فلاتر */}
       <div className="card" style={{ marginBottom: '20px' }}>
         <div className="card-body" style={{ padding: '16px 24px' }}>
           <div className="form-row" style={{ alignItems: 'flex-end' }}>
@@ -138,24 +123,22 @@ function VouchersTab({ apiFetch }) {
                 <option value="all">الكل</option>
                 <option value="receipt">سند قبض</option>
                 <option value="payment">سند صرف</option>
-                <option value="invoice">فاتورة نقدي</option>
               </select>
             </div>
             <div className="form-group" style={{ flexGrow: 1 }}>
               <label className="form-label">بحث</label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
-                <input type="text" className="form-input" style={{ paddingRight: '36px' }} placeholder="ابحث باسم العضو أو البيان..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                <input type="text" className="form-input" style={{ paddingRight: '36px' }} placeholder="ابحث بالجهة أو البيان..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
               </div>
             </div>
             <div className="form-group" style={{ alignSelf: 'flex-end' }}>
-              <button className="btn btn-primary" onClick={openAddModal}>➕ إضافة سند</button>
+              <button className="btn btn-primary" onClick={openAddModal}>➕ سند جديد</button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* جدول */}
       <div className="card">
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 className="card-title" style={{ margin: 0 }}><span>📋</span><span>سجل السندات ({filtered.length})</span></h3>
@@ -165,20 +148,21 @@ function VouchersTab({ apiFetch }) {
         ) : (
           <div className="table-wrapper">
             <table className="data-table mobile-cards-table">
-              <thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>العضو</th><th>المبلغ</th><th>البيان</th><th>الإجراءات</th></tr></thead>
+              <thead><tr><th>رقم السند</th><th>التاريخ</th><th>النوع</th><th>الجهة / المستفيد</th><th>المبلغ</th><th>البيان</th><th>الإجراءات</th></tr></thead>
               <tbody>
-                {filtered.map((v, idx) => (
+                {filtered.map(v => (
                   <tr key={v.id}>
-                    <td data-label="#">{idx + 1}</td>
+                    <td data-label="رقم السند" style={{ fontWeight: 700, color: 'var(--accent)' }}>{v.voucher_number ? `#${v.voucher_number}` : '—'}</td>
                     <td data-label="التاريخ">{v.voucher_date ? v.voucher_date.split('T')[0] : '—'}</td>
                     <td data-label="النوع"><span className={`badge ${getTypeBadge(v.voucher_type)}`}>{getTypeName(v.voucher_type)}</span></td>
-                    <td data-label="العضو" style={{ fontWeight: 600 }}>{v.member_name || '—'}</td>
+                    <td data-label="الجهة" style={{ fontWeight: 600 }}>{getPartyName(v)}</td>
                     <td data-label="المبلغ" style={{ fontWeight: 700, color: v.voucher_type === 'receipt' ? 'var(--success)' : 'var(--danger)' }}>
-                      {parseFloat(v.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} د.أ
+                      {parseFloat(v.amount).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ
                     </td>
                     <td data-label="البيان">{v.description || '—'}</td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
+                        <button className="btn btn-primary btn-sm" onClick={() => { setPrintVoucher(v); setShowPrint(true); }} title="طباعة">🖨️</button>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(v)}>✏️</button>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(v)}>🗑️</button>
                       </div>
@@ -191,45 +175,65 @@ function VouchersTab({ apiFetch }) {
         )}
       </div>
 
-      {/* مودال إضافة/تعديل */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '540px' }}>
             <div className="modal-header">
               <h3 className="modal-title">{editingVoucher ? '✏️ تعديل السند' : '➕ إضافة سند جديد'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">نوع السند *</label>
-                  <select className="form-select" value={form.voucher_type} onChange={e => setForm({ ...form, voucher_type: e.target.value })} required>
-                    <option value="receipt">🟢 سند قبض</option>
-                    <option value="payment">🔴 سند صرف</option>
-                    <option value="invoice">🟡 فاتورة نقدي</option>
-                  </select>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">نوع السند *</label>
+                    <select className="form-select" value={form.voucher_type} onChange={e => handleTypeChange(e.target.value)} required>
+                      <option value="receipt">🟢 سند قبض</option>
+                      <option value="payment">🔴 سند صرف</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">رقم السند</label>
+                    <input type="number" className="form-input" value={form.voucher_number} onChange={e => setForm({ ...form, voucher_number: e.target.value })} />
+                  </div>
                 </div>
+
                 <div className="form-group">
-                  <label className="form-label">العضو *</label>
-                  <select className="form-select" value={form.member_id} onChange={e => setForm({ ...form, member_id: e.target.value })} required>
-                    <option value="">-- اختر العضو --</option>
-                    {members.map(m => <option key={m.id} value={m.id}>{m.full_name}{m.national_id ? ` — ${m.national_id}` : ''}</option>)}
-                  </select>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <label className="form-label" style={{ margin: 0 }}>
+                      {form.voucher_type === 'payment' ? 'صرف إلى *' : 'استلم من *'}
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={form.use_member} onChange={e => setForm({ ...form, use_member: e.target.checked, party_name: '', member_id: '' })} />
+                      ربط بعضو مسجل
+                    </label>
+                  </div>
+                  {form.use_member ? (
+                    <select className="form-select" value={form.member_id} onChange={e => setForm({ ...form, member_id: e.target.value })} required={form.use_member}>
+                      <option value="">-- اختر العضو --</option>
+                      {members.map(m => <option key={m.id} value={m.id}>{m.full_name}{m.national_id ? ` — ${m.national_id}` : ''}</option>)}
+                    </select>
+                  ) : (
+                    <input type="text" className="form-input" placeholder="اسم الجهة / الشركة / الشخص..." value={form.party_name} onChange={e => setForm({ ...form, party_name: e.target.value })} required={!form.use_member} />
+                  )}
                 </div>
+
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">المبلغ (د.أ) *</label>
-                    <input type="number" className="form-input" placeholder="0.00" step="0.001" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required />
+                    <input type="number" className="form-input" placeholder="0.000" step="0.001" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required />
                   </div>
                   <div className="form-group">
                     <label className="form-label">التاريخ *</label>
                     <input type="date" className="form-input" value={form.voucher_date} onChange={e => setForm({ ...form, voucher_date: e.target.value })} required />
                   </div>
                 </div>
+
                 <div className="form-group">
-                  <label className="form-label">البيان / الوصف</label>
-                  <textarea className="form-input" placeholder="وصف العملية..." rows="3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={{ resize: 'vertical' }} />
+                  <label className="form-label">البيان / سبب الصرف</label>
+                  <textarea className="form-input" placeholder="وصف السند..." rows="2" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={{ resize: 'vertical' }} />
                 </div>
+
                 {formError && <div style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '8px', padding: '8px 12px', background: 'var(--danger-bg)', borderRadius: 'var(--radius-sm)' }}>⚠️ {formError}</div>}
               </div>
               <div className="modal-footer">
@@ -241,7 +245,63 @@ function VouchersTab({ apiFetch }) {
         </div>
       )}
 
-      {/* مودال الحذف */}
+      {showPrint && printVoucher && (
+        <div className="modal-overlay" onClick={() => setShowPrint(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', background: 'white', color: '#000' }}>
+            <div style={{ padding: '28px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }}>
+              <div style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{printVoucher.voucher_type === 'payment' ? 'سند صرف' : 'سند قبض'}</h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#555' }}>ديوان المصري</p>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.95rem' }}>
+                <div>رقم السند: <strong style={{ fontSize: '1.1rem' }}>{printVoucher.voucher_number || '—'}</strong></div>
+                <div>التاريخ: <strong>{printVoucher.voucher_date ? printVoucher.voucher_date.split('T')[0] : '—'}</strong></div>
+              </div>
+              <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ marginBottom: '10px', fontSize: '0.95rem' }}>
+                  <span style={{ color: '#555' }}>{printVoucher.voucher_type === 'payment' ? 'صُرف إلى السادة:' : 'استُلم من السادة:'}</span>
+                  <span style={{ fontWeight: 700, fontSize: '1.1rem', marginRight: '8px' }}>{printVoucher.party_name || printVoucher.member_name || '—'}</span>
+                </div>
+                <div style={{ fontSize: '0.95rem' }}>
+                  <span style={{ color: '#555' }}>مبلغ وقدره (نقداً):</span>
+                  <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#b91c1c', marginRight: '8px' }}>
+                    {parseFloat(printVoucher.amount).toLocaleString('en-US', { minimumFractionDigits: 3 })} دينار أردني
+                  </span>
+                </div>
+              </div>
+              {printVoucher.description && (
+                <div style={{ marginBottom: '16px', fontSize: '0.9rem' }}>
+                  <span style={{ color: '#555' }}>وذلك عن: </span>
+                  <span style={{ fontWeight: 600 }}>{printVoucher.description}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', fontSize: '0.9rem', alignItems: 'center' }}>
+                <span style={{ color: '#555' }}>طريقة الدفع:</span>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
+                  <input type="radio" readOnly defaultChecked /> نقداً ✓
+                </label>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px', fontSize: '0.85rem', borderTop: '1px solid #ccc', paddingTop: '16px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div>المستلم</div>
+                  <div style={{ marginTop: '36px', borderBottom: '1px solid #000', width: '140px' }}></div>
+                  <div style={{ marginTop: '4px', color: '#555' }}>التوقيع</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div>المسؤول / المدير</div>
+                  <div style={{ marginTop: '36px', borderBottom: '1px solid #000', width: '140px' }}></div>
+                  <div style={{ marginTop: '4px', color: '#555' }}>التوقيع</div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', padding: '12px', background: 'var(--bg-secondary)' }}>
+              <button className="btn btn-primary" onClick={() => window.print()}>🖨️ طباعة</button>
+              <button className="btn btn-secondary" onClick={() => setShowPrint(false)}>إغلاق</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
@@ -251,7 +311,7 @@ function VouchersTab({ apiFetch }) {
             </div>
             <div className="modal-body">
               <p>هل أنت متأكد من حذف هذا السند؟</p>
-              <p style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1.1rem' }}>{getTypeName(deleteConfirm.voucher_type)} — {deleteConfirm.member_name}</p>
+              <p style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1.1rem' }}>{getTypeName(deleteConfirm.voucher_type)} {deleteConfirm.voucher_number ? `#${deleteConfirm.voucher_number}` : ''}</p>
               <p style={{ color: 'var(--text-muted)' }}>المبلغ: {parseFloat(deleteConfirm.amount).toLocaleString('en-US')} د.أ</p>
             </div>
             <div className="modal-footer">
@@ -266,6 +326,7 @@ function VouchersTab({ apiFetch }) {
     </div>
   );
 }
+
 
 // ============================================================
 // تبويب الذمم على الديوان

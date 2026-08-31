@@ -144,14 +144,19 @@ export async function initDatabase() {
     await pgPool.query(`
       CREATE TABLE IF NOT EXISTS vouchers (
         id SERIAL PRIMARY KEY,
+        voucher_number INTEGER,
         voucher_type VARCHAR(50) NOT NULL,
         amount REAL NOT NULL,
         member_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
+        party_name VARCHAR(255),
         description TEXT,
         voucher_date DATE NOT NULL DEFAULT CURRENT_DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    await pgPool.query(`ALTER TABLE vouchers ADD COLUMN IF NOT EXISTS voucher_number INTEGER;`);
+    await pgPool.query(`ALTER TABLE vouchers ADD COLUMN IF NOT EXISTS party_name VARCHAR(255);`);
 
     await pgPool.query(`
       CREATE TABLE IF NOT EXISTS invoices (
@@ -304,9 +309,11 @@ export async function initDatabase() {
   sqliteDb.run(`
     CREATE TABLE IF NOT EXISTS vouchers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      voucher_number INTEGER,
       voucher_type TEXT NOT NULL,
       amount REAL NOT NULL,
       member_id INTEGER,
+      party_name TEXT,
       description TEXT,
       voucher_date DATE NOT NULL DEFAULT (date('now')),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -377,6 +384,10 @@ function runMigrations() {
 
   const expenseCols = getColumnNames('expenses');
   if (!expenseCols.includes('receipt_url')) { try { sqliteDb.run("ALTER TABLE expenses ADD COLUMN receipt_url TEXT"); } catch(e) {} }
+
+  const voucherCols = getColumnNames('vouchers');
+  if (!voucherCols.includes('voucher_number')) { try { sqliteDb.run("ALTER TABLE vouchers ADD COLUMN voucher_number INTEGER"); } catch(e) {} }
+  if (!voucherCols.includes('party_name')) { try { sqliteDb.run("ALTER TABLE vouchers ADD COLUMN party_name TEXT"); } catch(e) {} }
 
   saveDatabase();
 }
