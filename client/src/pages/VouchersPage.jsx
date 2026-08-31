@@ -533,6 +533,394 @@ function DebtsTab({ apiFetch }) {
 }
 
 // ============================================================
+// تبويب الفواتير النقدية
+// ============================================================
+function InvoicesTab({ apiFetch }) {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [showPrint, setShowPrint] = useState(false);
+  const [printInvoice, setPrintInvoice] = useState(null);
+  const [editingInvoice, setEditingInvoice] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [formError, setFormError] = useState('');
+  const now = new Date();
+
+  const emptyItem = () => ({ item_description: '', quantity: 1, unit_price: 0 });
+  const [form, setForm] = useState({
+    invoice_number: '',
+    invoice_date: now.toISOString().split('T')[0],
+    payment_type: 'cash',
+    customer_name: '',
+    notes: '',
+    items: [emptyItem()],
+  });
+
+  useEffect(() => { loadInvoices(); fetchNextNumber(); }, []);
+
+  const loadInvoices = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch('/api/invoices');
+      const data = await res.json();
+      setInvoices(Array.isArray(data) ? data : []);
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  const fetchNextNumber = async () => {
+    try {
+      const res = await apiFetch('/api/invoices/next-number');
+      const data = await res.json();
+      setForm(f => ({ ...f, invoice_number: data.next_number }));
+    } catch (err) { console.error(err); }
+  };
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const openAddModal = async () => {
+    const res = await apiFetch('/api/invoices/next-number');
+    const data = await res.json();
+    setEditingInvoice(null);
+    setFormError('');
+    setForm({
+      invoice_number: data.next_number,
+      invoice_date: now.toISOString().split('T')[0],
+      payment_type: 'cash',
+      customer_name: '',
+      notes: '',
+      items: [emptyItem()],
+    });
+    setShowModal(true);
+  };
+
+  const openEditModal = async (invoice) => {
+    const res = await apiFetch(`/api/invoices/${invoice.id}`);
+    const data = await res.json();
+    setEditingInvoice(data);
+    setFormError('');
+    setForm({
+      invoice_number: data.invoice_number,
+      invoice_date: data.invoice_date ? data.invoice_date.split('T')[0] : '',
+      payment_type: data.payment_type || 'cash',
+      customer_name: data.customer_name || '',
+      notes: data.notes || '',
+      items: data.items && data.items.length > 0 ? data.items : [emptyItem()],
+    });
+    setShowModal(true);
+  };
+
+  const openPrint = async (invoice) => {
+    const res = await apiFetch(`/api/invoices/${invoice.id}`);
+    const data = await res.json();
+    setPrintInvoice(data);
+    setShowPrint(true);
+  };
+
+  const updateItem = (idx, field, value) => {
+    const updated = form.items.map((item, i) => i === idx ? { ...item, [field]: value } : item);
+    setForm({ ...form, items: updated });
+  };
+
+  const addItem = () => setForm({ ...form, items: [...form.items, emptyItem()] });
+  const removeItem = (idx) => setForm({ ...form, items: form.items.filter((_, i) => i !== idx) });
+
+  const grandTotal = form.items.reduce((s, item) => s + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0)), 0);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    if (!form.customer_name || !form.invoice_date) { setFormError('اسم العميل والتاريخ مطلوبان'); return; }
+    const validItems = form.items.filter(i => i.item_description.trim());
+    if (validItems.length === 0) { setFormError('أدخل عنصراً واحداً على الأقل'); return; }
+    try {
+      const isEditing = !!editingInvoice;
+      const res = await apiFetch(isEditing ? `/api/invoices/${editingInvoice.id}` : '/api/invoices', {
+        method: isEditing ? 'PUT' : 'POST',
+        body: JSON.stringify({ ...form, items: validItems }),
+      });
+      if (!res.ok) { const d = await res.json(); setFormError(d.error || 'خطأ في الحفظ'); return; }
+      showToast(isEditing ? 'تم تعديل الفاتورة بنجاح' : 'تم إنشاء الفاتورة بنجاح');
+      setShowModal(false);
+      loadInvoices();
+    } catch { setFormError('حدث خطأ أثناء الحفظ'); }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    try {
+      await apiFetch(`/api/invoices/${deleteConfirm.id}`, { method: 'DELETE' });
+      showToast('تم حذف الفاتورة بنجاح');
+      setDeleteConfirm(null);
+      loadInvoices();
+    } catch { showToast('حدث خطأ أثناء الحذف', 'error'); }
+  };
+
+  if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
+
+  return (
+    <div>
+      {/* رأس القسم */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+        <button className="btn btn-primary" onClick={openAddModal}>➕ فاتورة جديدة</button>
+      </div>
+
+      {/* قائمة الفواتير */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title" style={{ margin: 0 }}><span>🧾</span><span>الفواتير النقدية ({invoices.length})</span></h3>
+        </div>
+        {invoices.length === 0 ? (
+          <div className="empty-state"><div className="empty-state-icon">🧾</div><div className="empty-state-text">لا توجد فواتير بعد</div></div>
+        ) : (
+          <div className="table-wrapper">
+            <table className="data-table mobile-cards-table">
+              <thead>
+                <tr><th>رقم الفاتورة</th><th>التاريخ</th><th>العميل</th><th>نوع الدفع</th><th>الإجمالي</th><th>الإجراءات</th></tr>
+              </thead>
+              <tbody>
+                {invoices.map(inv => (
+                  <tr key={inv.id}>
+                    <td data-label="رقم الفاتورة" style={{ fontWeight: 700, color: 'var(--accent)' }}>#{inv.invoice_number}</td>
+                    <td data-label="التاريخ">{inv.invoice_date ? inv.invoice_date.split('T')[0] : '—'}</td>
+                    <td data-label="العميل" style={{ fontWeight: 600 }}>{inv.customer_name}</td>
+                    <td data-label="نوع الدفع">
+                      <span className={`badge ${inv.payment_type === 'cash' ? 'badge-active' : 'badge-warning'}`}>
+                        {inv.payment_type === 'cash' ? '💵 نقداً' : '📋 ذمم'}
+                      </span>
+                    </td>
+                    <td data-label="الإجمالي" style={{ fontWeight: 700 }}>
+                      {parseFloat(inv.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ
+                    </td>
+                    <td data-label="الإجراءات">
+                      <div className="action-buttons">
+                        <button className="btn btn-primary btn-sm" onClick={() => openPrint(inv)} title="طباعة">🖨️</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(inv)} title="تعديل">✏️</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(inv)} title="حذف">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* مودال إنشاء / تعديل الفاتورة */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px', width: '95%' }}>
+            <div className="modal-header">
+              <h3 className="modal-title">{editingInvoice ? '✏️ تعديل الفاتورة' : '➕ فاتورة جديدة'}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                {/* معلومات الفاتورة */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">رقم الفاتورة *</label>
+                    <input type="number" className="form-input" value={form.invoice_number} onChange={e => setForm({ ...form, invoice_number: e.target.value })} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">التاريخ *</label>
+                    <input type="date" className="form-input" value={form.invoice_date} onChange={e => setForm({ ...form, invoice_date: e.target.value })} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">نوع الدفع</label>
+                    <select className="form-select" value={form.payment_type} onChange={e => setForm({ ...form, payment_type: e.target.value })}>
+                      <option value="cash">💵 نقداً</option>
+                      <option value="credit">📋 ذمم</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">المطلوب من السادة (اسم العميل) *</label>
+                  <input type="text" className="form-input" placeholder="اسم العميل أو الجهة..." value={form.customer_name} onChange={e => setForm({ ...form, customer_name: e.target.value })} required />
+                </div>
+
+                {/* جدول العناصر */}
+                <div style={{ marginTop: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label className="form-label" style={{ margin: 0 }}>عناصر الفاتورة *</label>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={addItem}>+ إضافة عنصر</button>
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                      <thead>
+                        <tr style={{ background: 'var(--bg-tertiary)' }}>
+                          <th style={{ padding: '8px', border: '1px solid var(--border)', textAlign: 'right' }}>البيان / الصنف</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--border)', width: '80px', textAlign: 'center' }}>الكمية</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--border)', width: '120px', textAlign: 'center' }}>سعر الوحدة</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--border)', width: '120px', textAlign: 'center' }}>الإجمالي</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--border)', width: '40px' }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {form.items.map((item, idx) => {
+                          const rowTotal = parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0);
+                          return (
+                            <tr key={idx}>
+                              <td style={{ border: '1px solid var(--border)', padding: '4px' }}>
+                                <input type="text" className="form-input" style={{ margin: 0, border: 'none', background: 'transparent', padding: '4px 8px' }} placeholder="اسم الصنف أو الخدمة" value={item.item_description} onChange={e => updateItem(idx, 'item_description', e.target.value)} />
+                              </td>
+                              <td style={{ border: '1px solid var(--border)', padding: '4px' }}>
+                                <input type="number" className="form-input" style={{ margin: 0, border: 'none', background: 'transparent', padding: '4px', textAlign: 'center' }} min="0" step="any" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} />
+                              </td>
+                              <td style={{ border: '1px solid var(--border)', padding: '4px' }}>
+                                <input type="number" className="form-input" style={{ margin: 0, border: 'none', background: 'transparent', padding: '4px', textAlign: 'center' }} min="0" step="any" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} />
+                              </td>
+                              <td style={{ border: '1px solid var(--border)', padding: '8px', textAlign: 'center', fontWeight: 600, color: 'var(--accent)' }}>
+                                {rowTotal.toLocaleString('en-US', { minimumFractionDigits: 3 })}
+                              </td>
+                              <td style={{ border: '1px solid var(--border)', padding: '4px', textAlign: 'center' }}>
+                                {form.items.length > 1 && <button type="button" onClick={() => removeItem(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: '1.1rem' }}>✕</button>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colSpan="3" style={{ border: '1px solid var(--border)', padding: '10px', textAlign: 'left', fontWeight: 700 }}>المجموع الكلي</td>
+                          <td style={{ border: '1px solid var(--border)', padding: '10px', textAlign: 'center', fontWeight: 700, fontSize: '1.1rem', color: 'var(--accent)' }}>
+                            {grandTotal.toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ
+                          </td>
+                          <td style={{ border: '1px solid var(--border)' }}></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '12px' }}>
+                  <label className="form-label">ملاحظات</label>
+                  <textarea className="form-input" rows="2" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} style={{ resize: 'vertical' }} />
+                </div>
+
+                {formError && <div style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '8px', padding: '8px 12px', background: 'var(--danger-bg)', borderRadius: 'var(--radius-sm)' }}>⚠️ {formError}</div>}
+              </div>
+              <div className="modal-footer">
+                <button type="submit" className="btn btn-primary">{editingInvoice ? '💾 حفظ التعديلات' : '✅ إنشاء الفاتورة'}</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>إلغاء</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* مودال الطباعة */}
+      {showPrint && printInvoice && (
+        <div className="modal-overlay" onClick={() => setShowPrint(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px', width: '95%', background: 'white', color: '#000' }}>
+            <div style={{ padding: '24px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }} id="print-area">
+              {/* رأس الفاتورة */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '0.9rem' }}>رقم: <strong>{printInvoice.invoice_number}</strong></div>
+                  <div style={{ fontSize: '0.9rem' }}>التاريخ: <strong>{printInvoice.invoice_date ? printInvoice.invoice_date.split('T')[0] : ''}</strong></div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.4rem' }}>فاتورة Invoice</h2>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '0.85rem' }}>
+                    <label><input type="radio" readOnly checked={printInvoice.payment_type === 'cash'} /> نقداً Cash</label>
+                    <label><input type="radio" readOnly checked={printInvoice.payment_type === 'credit'} /> ذمم Credit</label>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'left', fontSize: '0.85rem', color: '#555' }}>ديوان المصري</div>
+              </div>
+
+              {/* اسم العميل */}
+              <div style={{ marginBottom: '12px', fontSize: '0.95rem', borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>
+                <span>المطلوب من السادة: </span><strong>{printInvoice.customer_name}</strong>
+              </div>
+
+              {/* جدول العناصر */}
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '12px' }}>
+                <thead>
+                  <tr style={{ background: '#f5f5f5' }}>
+                    <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'right' }}>البيان</th>
+                    <th style={{ border: '1px solid #ccc', padding: '6px', width: '70px', textAlign: 'center' }}>الكمية</th>
+                    <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإفرادي</th>
+                    <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإجمالي</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(printInvoice.items || []).map((item, i) => (
+                    <tr key={i}>
+                      <td style={{ border: '1px solid #ccc', padding: '6px 10px' }}>{item.item_description}</td>
+                      <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{item.quantity}</td>
+                      <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{parseFloat(item.unit_price).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
+                      <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center', fontWeight: 600 }}>{parseFloat(item.total).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
+                    </tr>
+                  ))}
+                  {/* صفوف فارغة للشكل */}
+                  {Array.from({ length: Math.max(0, 5 - (printInvoice.items || []).length) }).map((_, i) => (
+                    <tr key={`empty-${i}`}>
+                      <td style={{ border: '1px solid #ccc', padding: '12px' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #ccc' }}></td>
+                      <td style={{ border: '1px solid #ccc' }}></td>
+                      <td style={{ border: '1px solid #ccc' }}></td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{ background: '#f5f5f5' }}>
+                    <td colSpan="3" style={{ border: '1px solid #ccc', padding: '8px 10px', fontWeight: 700, textAlign: 'right' }}>المجموع / Total</td>
+                    <td style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center', fontWeight: 700, fontSize: '1rem' }}>
+                      {parseFloat(printInvoice.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              {printInvoice.notes && <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px' }}>ملاحظات: {printInvoice.notes}</div>}
+
+              {/* التوقيع */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', fontSize: '0.85rem' }}>
+                <div>توقيع المستلم: ____________________</div>
+                <div>توقيع المسؤول: ____________________</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', padding: '12px', background: 'var(--bg-secondary)' }}>
+              <button className="btn btn-primary" onClick={() => window.print()}>🖨️ طباعة</button>
+              <button className="btn btn-secondary" onClick={() => setShowPrint(false)}>إغلاق</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* مودال الحذف */}
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">🗑️ حذف الفاتورة</h3>
+              <button className="modal-close" onClick={() => setDeleteConfirm(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p>هل أنت متأكد من حذف الفاتورة رقم <strong style={{ color: 'var(--accent)' }}>#{deleteConfirm.invoice_number}</strong>؟</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>العميل: {deleteConfirm.customer_name}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-danger" onClick={handleDelete}>🗑️ نعم، احذف</button>
+              <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className={`toast toast-${toast.type}`}>{toast.message}</div>}
+    </div>
+  );
+}
+
+// ============================================================
 // الصفحة الرئيسية — نظام المحاسبة
 // ============================================================
 export default function VouchersPage() {
@@ -540,8 +928,9 @@ export default function VouchersPage() {
   const [activeTab, setActiveTab] = useState('vouchers');
 
   const tabs = [
-    { id: 'vouchers', label: '🧾 السندات والفواتير' },
-    { id: 'debts',    label: '📜 الذمم على الديوان' },
+    { id: 'vouchers', label: '📋 السندات' },
+    { id: 'debts',    label: '📜 الذمم' },
+    { id: 'invoices', label: '🧾 الفواتير النقدية' },
   ];
 
   return (
@@ -549,7 +938,7 @@ export default function VouchersPage() {
       <div className="page-header">
         <div>
           <h2 className="page-title"><span>💼</span><span>النظام المحاسبي</span></h2>
-          <p className="page-description">إدارة السندات والفواتير والذمم المالية في مكان واحد</p>
+          <p className="page-description">إدارة السندات والذمم والفواتير المالية في مكان واحد</p>
         </div>
       </div>
 
@@ -579,8 +968,9 @@ export default function VouchersPage() {
       </div>
 
       {/* محتوى التبويب النشط */}
-      {activeTab === 'vouchers' && <VouchersTab apiFetch={apiFetch} />}
-      {activeTab === 'debts'    && <DebtsTab apiFetch={apiFetch} />}
+      {activeTab === 'vouchers'  && <VouchersTab apiFetch={apiFetch} />}
+      {activeTab === 'debts'     && <DebtsTab apiFetch={apiFetch} />}
+      {activeTab === 'invoices'  && <InvoicesTab apiFetch={apiFetch} />}
     </div>
   );
 }

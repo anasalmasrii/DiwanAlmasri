@@ -146,10 +146,34 @@ export async function initDatabase() {
         id SERIAL PRIMARY KEY,
         voucher_type VARCHAR(50) NOT NULL,
         amount REAL NOT NULL,
-        member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+        member_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
         description TEXT,
         voucher_date DATE NOT NULL DEFAULT CURRENT_DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id SERIAL PRIMARY KEY,
+        invoice_number INTEGER UNIQUE NOT NULL,
+        invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        payment_type VARCHAR(20) DEFAULT 'cash',
+        customer_name VARCHAR(255) NOT NULL,
+        total REAL NOT NULL DEFAULT 0,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS invoice_items (
+        id SERIAL PRIMARY KEY,
+        invoice_id INTEGER NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+        item_description TEXT NOT NULL,
+        quantity REAL NOT NULL DEFAULT 1,
+        unit_price REAL NOT NULL DEFAULT 0,
+        total REAL NOT NULL DEFAULT 0
       )
     `);
 
@@ -282,11 +306,36 @@ export async function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       voucher_type TEXT NOT NULL,
       amount REAL NOT NULL,
-      member_id INTEGER NOT NULL,
+      member_id INTEGER,
       description TEXT,
       voucher_date DATE NOT NULL DEFAULT (date('now')),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE SET NULL
+    )
+  `);
+
+  sqliteDb.run(`
+    CREATE TABLE IF NOT EXISTS invoices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_number INTEGER UNIQUE NOT NULL,
+      invoice_date DATE NOT NULL DEFAULT (date('now')),
+      payment_type TEXT DEFAULT 'cash',
+      customer_name TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  sqliteDb.run(`
+    CREATE TABLE IF NOT EXISTS invoice_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_id INTEGER NOT NULL,
+      item_description TEXT NOT NULL,
+      quantity REAL NOT NULL DEFAULT 1,
+      unit_price REAL NOT NULL DEFAULT 0,
+      total REAL NOT NULL DEFAULT 0,
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
     )
   `);
 
