@@ -366,9 +366,19 @@ function VouchersTab({ apiFetch }) {
         <div className="modal-overlay" onClick={() => setShowPrint(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px', background: 'white', color: '#000' }}>
             <div style={{ padding: '28px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }}>
-              <div style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '16px' }}>
-                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{printVoucher.voucher_type === 'payment' ? 'سند صرف' : 'سند قبض'}</h2>
-                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#555' }}>ديوان المصري</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '70px', height: '70px', objectFit: 'contain' }} />
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>ديوان آل المصري</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#666' }}>عمان - الأردن</p>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, border: '2px solid #000', padding: '4px 16px', borderRadius: '4px' }}>
+                    {printVoucher.voucher_type === 'payment' ? 'سند صرف' : 'سند قبض'}
+                  </h2>
+                </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.95rem' }}>
                 <div>رقم السند: <strong style={{ fontSize: '1.1rem' }}>{printVoucher.voucher_number || '—'}</strong></div>
@@ -1259,19 +1269,25 @@ function InvoicesTab({ apiFetch }) {
               <button className="modal-close" onClick={() => setShowPrint(false)}>✕</button>
             </div>
             <div style={{ padding: '24px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }} id="print-area">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
-                <div>
-                  <div style={{ fontSize: '0.9rem' }}>رقم: <strong>{printInvoice.invoice_number}</strong></div>
-                  <div style={{ fontSize: '0.9rem' }}>التاريخ: <strong>{printInvoice.invoice_date ? printInvoice.invoice_date.split('T')[0] : ''}</strong></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '65px', height: '65px', objectFit: 'contain' }} />
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>ديوان آل المصري</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#666' }}>عمان - الأردن</p>
+                  </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <h2 style={{ margin: 0, fontSize: '1.4rem' }}>فاتورة Invoice</h2>
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '0.85rem' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>فاتورة Invoice</h2>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '0.85rem', justifyContent: 'center' }}>
                     <label><input type="radio" readOnly checked={printInvoice.payment_type === 'cash'} /> نقداً Cash</label>
                     <label><input type="radio" readOnly checked={printInvoice.payment_type === 'credit'} /> ذمم Credit</label>
                   </div>
                 </div>
-                <div style={{ textAlign: 'left', fontSize: '0.85rem', color: '#555' }}>ديوان المصري</div>
+                <div style={{ textAlign: 'left', fontSize: '0.85rem' }}>
+                  <div>رقم: <strong>#{printInvoice.invoice_number}</strong></div>
+                  <div>التاريخ: <strong>{printInvoice.invoice_date ? printInvoice.invoice_date.split('T')[0] : ''}</strong></div>
+                </div>
               </div>
 
               <div style={{ marginBottom: '12px', fontSize: '0.95rem', borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>
