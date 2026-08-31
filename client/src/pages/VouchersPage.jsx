@@ -1397,7 +1397,7 @@ export default function VouchersPage() {
       <div className="page-header">
         <div>
           <h2 className="page-title"><span>💼</span><span>النظام المحاسبي</span></h2>
-          <p className="page-description">إدارة السندات والذمم والفواتير المالية في مكان واحد</p>
+          <p className="page-description">إدارة السندات والذمم والفواتير المالية</p>
         </div>
       </div>
 
