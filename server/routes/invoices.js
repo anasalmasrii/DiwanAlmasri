@@ -121,4 +121,35 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// ── ترحيل فاتورة للمصاريف ────────────────────────────────────
+router.post('/:id/transfer', async (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const invoice = await db.get('SELECT * FROM invoices WHERE id = ?', [id]);
+    if (!invoice) return res.status(404).json({ error: 'الفاتورة غير موجودة' });
+
+    if (invoice.is_transferred) {
+      return res.status(400).json({ error: 'تم ترحيل هذه الفاتورة مسبقاً' });
+    }
+
+    const description = `فاتورة #${invoice.invoice_number} — ${invoice.customer_name}`;
+    const expenseDate = invoice.invoice_date || new Date().toISOString().split('T')[0];
+    const dateObj = new Date(expenseDate);
+    const month = dateObj.getMonth() + 1;
+    const year = dateObj.getFullYear();
+
+    await db.run(
+      'INSERT INTO expenses (amount, description, expense_date, month, year, category) VALUES (?, ?, ?, ?, ?, ?)',
+      [parseFloat(invoice.total || 0), description, expenseDate, month, year, 'فواتير']
+    );
+
+    await db.run('UPDATE invoices SET is_transferred = 1 WHERE id = ?', [id]);
+
+    res.json({ success: true, message: 'تم ترحيل الفاتورة إلى المصاريف بنجاح' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

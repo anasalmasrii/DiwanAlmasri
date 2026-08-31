@@ -949,25 +949,19 @@ function InvoicesTab({ apiFetch }) {
     if (!expenseConfirm) return;
     try {
       const inv = expenseConfirm;
-      const description = `فاتورة #${inv.invoice_number} — ${inv.customer_name}`;
-      const res = await apiFetch('/api/expenses', {
+      const res = await apiFetch(`/api/invoices/${inv.id}/transfer`, {
         method: 'POST',
-        body: JSON.stringify({
-          amount: parseFloat(inv.total || 0),
-          description,
-          expense_date: inv.invoice_date ? inv.invoice_date.split('T')[0] : new Date().toISOString().split('T')[0],
-          category: 'فواتير',
-        }),
       });
       if (!res.ok) {
         const d = await res.json();
-        showToast(d.error || 'خطأ في الإضافة', 'error');
+        showToast(d.error || 'خطأ في الترحيل', 'error');
         return;
       }
-      showToast('تمت إضافة الفاتورة للمصاريف بنجاح');
+      showToast('تم ترحيل الفاتورة إلى المصاريف بنجاح');
       setExpenseConfirm(null);
+      loadInvoices();
     } catch {
-      showToast('حدث خطأ أثناء الإضافة', 'error');
+      showToast('حدث خطأ أثناء الترحيل', 'error');
     }
   };
 
@@ -1000,6 +994,7 @@ function InvoicesTab({ apiFetch }) {
                   <th>العميل</th>
                   <th>نوع الدفع</th>
                   <th>الإجمالي</th>
+                  <th>حالة الترحيل</th>
                   <th>الإجراءات</th>
                 </tr>
               </thead>
@@ -1017,25 +1012,56 @@ function InvoicesTab({ apiFetch }) {
                     <td data-label="الإجمالي" style={{ fontWeight: 700 }}>
                       {parseFloat(inv.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ
                     </td>
+                    <td data-label="حالة الترحيل">
+                      {inv.is_transferred ? (
+                        <span className="badge badge-active" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)' }}>
+                          ✓ مرحلة للمصاريف
+                        </span>
+                      ) : (
+                        <span className="badge" style={{ background: 'rgba(156, 163, 175, 0.15)', color: 'var(--text-muted)' }}>
+                          غير مرحلة
+                        </span>
+                      )}
+                    </td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
                         <button className="btn btn-primary btn-sm" onClick={() => openPrint(inv)} title="طباعة">🖨️</button>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(inv)} title="تعديل">✏️</button>
-                        <button
-                          className="btn btn-sm"
-                          style={{
-                            background: 'rgba(234,179,8,0.15)',
-                            color: '#ca8a04',
-                            border: '1px solid rgba(234,179,8,0.3)',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '13px',
-                          }}
-                          onClick={() => setExpenseConfirm(inv)}
-                          title="إضافة للمصاريف"
-                        >
-                          📤 مصروف
-                        </button>
+                        {inv.is_transferred ? (
+                          <button
+                            className="btn btn-sm"
+                            disabled
+                            style={{
+                              background: 'rgba(16, 185, 129, 0.1)',
+                              color: 'var(--success)',
+                              border: '1px solid rgba(16, 185, 129, 0.3)',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              cursor: 'default',
+                              opacity: 0.9,
+                            }}
+                            title="تم ترحيل الفاتورة للمصاريف مسبقاً"
+                          >
+                            ✓ تم الترحيل
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-sm"
+                            style={{
+                              background: 'rgba(234,179,8,0.15)',
+                              color: '#ca8a04',
+                              border: '1px solid rgba(234,179,8,0.3)',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '13px',
+                            }}
+                            onClick={() => setExpenseConfirm(inv)}
+                            title="إضافة للمصاريف"
+                          >
+                            📤 مصروف
+                          </button>
+                        )}
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(inv)} title="حذف">🗑️</button>
                       </div>
                     </td>

@@ -167,9 +167,12 @@ export async function initDatabase() {
         customer_name VARCHAR(255) NOT NULL,
         total REAL NOT NULL DEFAULT 0,
         notes TEXT,
+        is_transferred BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    await pgPool.query(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS is_transferred BOOLEAN DEFAULT FALSE;`);
 
     await pgPool.query(`
       CREATE TABLE IF NOT EXISTS invoice_items (
@@ -330,6 +333,7 @@ export async function initDatabase() {
       customer_name TEXT NOT NULL,
       total REAL NOT NULL DEFAULT 0,
       notes TEXT,
+      is_transferred INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -388,6 +392,9 @@ function runMigrations() {
   const voucherCols = getColumnNames('vouchers');
   if (!voucherCols.includes('voucher_number')) { try { sqliteDb.run("ALTER TABLE vouchers ADD COLUMN voucher_number INTEGER"); } catch(e) {} }
   if (!voucherCols.includes('party_name')) { try { sqliteDb.run("ALTER TABLE vouchers ADD COLUMN party_name TEXT"); } catch(e) {} }
+
+  const invoiceCols = getColumnNames('invoices');
+  if (!invoiceCols.includes('is_transferred')) { try { sqliteDb.run("ALTER TABLE invoices ADD COLUMN is_transferred INTEGER DEFAULT 0"); } catch(e) {} }
 
   saveDatabase();
 }
