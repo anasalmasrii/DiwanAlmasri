@@ -479,7 +479,7 @@ function DebtsTab({ apiFetch }) {
     if (!expenseConfirm) return;
     try {
       const inv = expenseConfirm;
-      const description = "ÙØ§ØªÙˆØ±Ø© #" + inv.invoice_number + " â€” " + inv.customer_name;
+      const description = "ÙØ§ØªÙˆØ±Ø© #" + inv.invoice_number + " — " + inv.customer_name;
       const res = await apiFetch('/api/expenses', {
         method: 'POST',
         body: JSON.stringify({
@@ -646,20 +646,20 @@ function DebtsTab({ apiFetch }) {
           <div className="modal" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">ðŸ“¤ Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</h3>
-              <button className="modal-close" onClick={() => setExpenseConfirm(null)}>âœ•</button>
+              <button className="modal-close" onClick={() => setExpenseConfirm(null)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{ marginBottom: '12px' }}>Ø³ÙŠØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ù…ØµØ±ÙˆÙ Ø¬Ø¯ÙŠØ¯ Ø¨Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªØ§Ù„ÙŠØ©:</p>
               <div style={{ background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', padding: '14px 18px', fontSize: '0.95rem' }}>
-                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ø¨ÙŠØ§Ù†:</span> <strong>ÙØ§ØªÙˆØ±Ø© #{expenseConfirm.invoice_number} â€” {expenseConfirm.customer_name}</strong></div>
-                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„Ù…Ø¨Ù„Øº:</span> <strong style={{ color: 'var(--danger)' }}>{parseFloat(expenseConfirm.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} Ø¯.Ø£</strong></div>
-                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ØªØ§Ø±ÙŠØ®:</span> <strong>{expenseConfirm.invoice_date ? expenseConfirm.invoice_date.split('T')[0] : 'â€”'}</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>البيان:</span> <strong>ÙØ§ØªÙˆØ±Ø© #{expenseConfirm.invoice_number} — {expenseConfirm.customer_name}</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>المبلغ:</span> <strong style={{ color: 'var(--danger)' }}>{parseFloat(expenseConfirm.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</strong></div>
+                <div style={{ marginBottom: '6px' }}><span style={{ color: 'var(--text-muted)' }}>التاريخ:</span> <strong>{expenseConfirm.invoice_date ? expenseConfirm.invoice_date.split('T')[0] : '—'}</strong></div>
                 <div><span style={{ color: 'var(--text-muted)' }}>Ø§Ù„ÙØ¦Ø©:</span> <strong>ÙÙˆØ§ØªÙŠØ±</strong></div>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-primary" onClick={handleAddToExpenses}>âœ… Ù†Ø¹Ù…ØŒ Ø£Ø¶Ù Ù„Ù„Ù…ØµØ§Ø±ÙŠÙ</button>
-              <button className="btn btn-secondary" onClick={() => setExpenseConfirm(null)}>Ø¥Ù„ØºØ§Ø¡</button>
+              <button className="btn btn-secondary" onClick={() => setExpenseConfirm(null)}>إلغاء</button>
             </div>
           </div>
         </div>
