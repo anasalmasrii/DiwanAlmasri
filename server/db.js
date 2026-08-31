@@ -141,6 +141,18 @@ export async function initDatabase() {
       )
     `);
 
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS vouchers (
+        id SERIAL PRIMARY KEY,
+        voucher_type VARCHAR(50) NOT NULL,
+        amount REAL NOT NULL,
+        member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+        description TEXT,
+        voucher_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // التحقق من وجود المسؤول الرئيسي
     const { rows } = await pgPool.query("SELECT id FROM users WHERE username = 'admin'");
     if (rows.length === 0) {
@@ -262,6 +274,19 @@ export async function initDatabase() {
       status TEXT DEFAULT 'unpaid',
       paid_date DATE,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  sqliteDb.run(`
+    CREATE TABLE IF NOT EXISTS vouchers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      voucher_type TEXT NOT NULL,
+      amount REAL NOT NULL,
+      member_id INTEGER NOT NULL,
+      description TEXT,
+      voucher_date DATE NOT NULL DEFAULT (date('now')),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
     )
   `);
 

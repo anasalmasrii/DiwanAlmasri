@@ -17,6 +17,7 @@ import expenseRoutes from './routes/expenses.js';
 import joinRequestRoutes from './routes/join_requests.js';
 import externalContributionRoutes from './routes/externalContributions.js';
 import debtRoutes from './routes/debts.js';
+import voucherRoutes from './routes/vouchers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,7 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/join-requests', joinRequestRoutes);
 app.use('/api/external-contributions', externalContributionRoutes);
 app.use('/api/debts', debtRoutes);
+app.use('/api/vouchers', voucherRoutes);
 
 app.get('/api/clear-notes', async (req, res) => {
   try {

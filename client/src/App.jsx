@@ -18,6 +18,7 @@ import ExpensesPage from './pages/ExpensesPage';
 import DebtsPage from './pages/DebtsPage';
 import ReportsPage from './pages/ReportsPage';
 import ExternalContributionsPage from './pages/ExternalContributionsPage';
+import VouchersPage from './pages/VouchersPage';
 import { useState } from 'react';
 
 function ProtectedRoute({ children, permission }) {
@@ -119,6 +120,14 @@ export default function App() {
         element={
           <ProtectedRoute permission="expenses">
             <AppLayout><DebtsPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vouchers"
+        element={
+          <ProtectedRoute permission="expenses">
+            <AppLayout><VouchersPage /></AppLayout>
           </ProtectedRoute>
         }
       />
