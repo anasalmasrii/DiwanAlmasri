@@ -842,62 +842,111 @@ function DebtsTab({ apiFetch }) {
             </div>
 
             {viewItem.type === 'invoice' ? (
-              <div style={{ padding: '24px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }} id="print-area">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '65px', height: '65px', objectFit: 'contain' }} />
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>ديوان آل المصري</h3>
-                      <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#666' }}>عمان - الأردن</p>
+              <div style={{ padding: '20px 24px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', background: '#ffffff', color: '#0f172a' }} id="print-area">
+                <div style={{ border: '2px solid #0f172a', borderRadius: '8px', padding: '18px', background: '#ffffff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0f172a', paddingBottom: '14px', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '65px', height: '65px', objectFit: 'contain' }} />
+                      <div>
+                        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>ديوان آل المصري</h2>
+                        <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>عمان — المملكة الأردنية الهاشمية</p>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ border: '2px solid #0f172a', padding: '4px 18px', borderRadius: '6px', background: '#f8fafc' }}>
+                        <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 900, color: '#0f172a' }}>فاتــــورة</h1>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '2px' }}>INVOICE</span>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem' }}>
+                        <div style={{ marginBottom: '2px' }}>
+                          <span style={{ color: '#64748b' }}>الرقم: </span>
+                          <strong style={{ color: '#0f172a' }}>#{viewItem.data.invoice_number}</strong>
+                        </div>
+                        <div>
+                          <span style={{ color: '#64748b' }}>التاريخ: </span>
+                          <strong style={{ color: '#0f172a' }}>{viewItem.data.invoice_date ? viewItem.data.invoice_date.split('T')[0] : ''}</strong>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>فاتورة Invoice</h2>
-                    <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '0.85rem', justifyContent: 'center' }}>
-                      <label><input type="radio" readOnly checked={viewItem.data.payment_type === 'cash'} /> نقداً Cash</label>
-                      <label><input type="radio" readOnly checked={viewItem.data.payment_type === 'credit'} /> ذمم Credit</label>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 14px', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 600 }}>المطلوب من السادة:</span>
+                      <strong style={{ fontSize: '1.05rem', color: '#0f172a', borderBottom: '1px dotted #94a3b8', paddingBottom: '2px', flexGrow: 1 }}>
+                        {viewItem.data.customer_name}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 600 }}>طريقة الدفع:</span>
+                      <span style={{ padding: '3px 8px', borderRadius: '4px', fontWeight: 700, background: viewItem.data.payment_type === 'cash' ? '#dcfce7' : '#fef3c7', color: viewItem.data.payment_type === 'cash' ? '#166534' : '#92400e', border: viewItem.data.payment_type === 'cash' ? '1px solid #86efac' : '1px solid #fde68a' }}>
+                        {viewItem.data.payment_type === 'cash' ? '💵 نقداً (Cash)' : '📋 ذمم (Credit)'}
+                      </span>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'left', fontSize: '0.85rem' }}>
-                    <div>رقم: <strong>#{viewItem.data.invoice_number}</strong></div>
-                    <div>التاريخ: <strong>{viewItem.data.invoice_date ? viewItem.data.invoice_date.split('T')[0] : ''}</strong></div>
-                  </div>
-                </div>
 
-                <div style={{ marginBottom: '12px', fontSize: '0.95rem', borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>
-                  <span>المطلوب من السادة: </span><strong>{viewItem.data.customer_name}</strong>
-                </div>
-
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '12px' }}>
-                  <thead>
-                    <tr style={{ background: '#f5f5f5' }}>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'right' }}>البيان</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px', width: '70px', textAlign: 'center' }}>الكمية</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإفرادي</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإجمالي</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(viewItem.data.items || []).map((item, i) => (
-                      <tr key={i}>
-                        <td style={{ border: '1px solid #ccc', padding: '6px 10px' }}>{item.item_description}</td>
-                        <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{item.quantity}</td>
-                        <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{parseFloat(item.unit_price).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
-                        <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center', fontWeight: 600 }}>{parseFloat(item.total).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', marginBottom: '14px' }}>
+                    <thead>
+                      <tr style={{ background: '#0f172a', color: '#ffffff' }}>
+                        <th style={{ border: '1px solid #0f172a', padding: '8px', width: '36px', textAlign: 'center' }}>#</th>
+                        <th style={{ border: '1px solid #0f172a', padding: '8px 10px', textAlign: 'right' }}>البيان / تفاصيل الصنف</th>
+                        <th style={{ border: '1px solid #0f172a', padding: '8px', width: '70px', textAlign: 'center' }}>الكمية</th>
+                        <th style={{ border: '1px solid #0f172a', padding: '8px', width: '110px', textAlign: 'center' }}>السعر الإفرادي</th>
+                        <th style={{ border: '1px solid #0f172a', padding: '8px', width: '120px', textAlign: 'center' }}>المجموع</th>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr style={{ background: '#f5f5f5' }}>
-                      <td colSpan="3" style={{ border: '1px solid #ccc', padding: '8px 10px', fontWeight: 700, textAlign: 'right' }}>المجموع / Total</td>
-                      <td style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center', fontWeight: 700, fontSize: '1rem' }}>
-                        {parseFloat(viewItem.data.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </thead>
+                    <tbody>
+                      {(viewItem.data.items || []).map((item, i) => (
+                        <tr key={i} style={{ background: i % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                          <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center', color: '#64748b' }}>{i + 1}</td>
+                          <td style={{ border: '1px solid #cbd5e1', padding: '7px 10px', fontWeight: 600, color: '#1e293b' }}>{item.item_description}</td>
+                          <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center', fontWeight: 600 }}>{item.quantity}</td>
+                          <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center' }}>{parseFloat(item.unit_price).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</td>
+                          <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center', fontWeight: 700, color: '#0f172a' }}>{parseFloat(item.total).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</td>
+                        </tr>
+                      ))}
+                      {Array.from({ length: Math.max(0, 4 - (viewItem.data.items || []).length) }).map((_, i) => (
+                        <tr key={`empty-${i}`} style={{ height: '32px', background: ((viewItem.data.items || []).length + i) % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                          <td style={{ border: '1px solid #e2e8f0', textAlign: 'center', color: '#cbd5e1' }}>—</td>
+                          <td style={{ border: '1px solid #e2e8f0' }}></td>
+                          <td style={{ border: '1px solid #e2e8f0' }}></td>
+                          <td style={{ border: '1px solid #e2e8f0' }}></td>
+                          <td style={{ border: '1px solid #e2e8f0' }}></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ background: '#f1f5f9' }}>
+                        <td colSpan="3" style={{ border: '1px solid #cbd5e1', borderTop: '2px solid #0f172a', padding: '9px 12px', fontWeight: 800, textAlign: 'right' }}>
+                          المجموع الكلي / Total
+                        </td>
+                        <td colSpan="2" style={{ border: '1px solid #cbd5e1', borderTop: '2px solid #0f172a', padding: '9px 12px', textAlign: 'center', fontWeight: 900, fontSize: '1.1rem', color: '#0f172a', background: '#e2e8f0' }}>
+                          {parseFloat(viewItem.data.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} دينار أردني
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
 
-                {viewItem.data.notes && <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px' }}>ملاحظات: {viewItem.data.notes}</div>}
+                  {viewItem.data.notes && (
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 10px', fontSize: '0.85rem', marginBottom: '12px' }}>
+                      <strong style={{ color: '#475569' }}>ملاحظات: </strong>
+                      <span>{viewItem.data.notes}</span>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px', paddingTop: '14px', borderTop: '1px dashed #cbd5e1', fontSize: '0.85rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, color: '#475569', marginBottom: '32px' }}>توقيع المستلم</div>
+                      <div style={{ borderBottom: '1px solid #94a3b8', width: '60%', margin: '0 auto' }}></div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, color: '#475569', marginBottom: '32px' }}>الختم والتوقيع المعتمد</div>
+                      <div style={{ borderBottom: '1px solid #94a3b8', width: '60%', margin: '0 auto' }}></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div style={{ padding: '24px', direction: 'rtl' }}>
@@ -1391,74 +1440,110 @@ function InvoicesTab({ apiFetch }) {
               </div>
               <button className="modal-close" onClick={() => setShowPrint(false)}>✕</button>
             </div>
-            <div style={{ padding: '24px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }} id="print-area">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '65px', height: '65px', objectFit: 'contain' }} />
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>ديوان آل المصري</h3>
-                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#666' }}>عمان - الأردن</p>
+            <div style={{ padding: '20px 24px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', background: '#ffffff', color: '#0f172a' }} id="print-area">
+              <div style={{ border: '2px solid #0f172a', borderRadius: '8px', padding: '18px', background: '#ffffff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0f172a', paddingBottom: '14px', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '65px', height: '65px', objectFit: 'contain' }} />
+                    <div>
+                      <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>ديوان آل المصري</h2>
+                      <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>عمان — المملكة الأردنية الهاشمية</p>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ border: '2px solid #0f172a', padding: '4px 18px', borderRadius: '6px', background: '#f8fafc' }}>
+                      <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 900, color: '#0f172a' }}>فاتــــورة</h1>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '2px' }}>INVOICE</span>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem' }}>
+                      <div style={{ marginBottom: '2px' }}>
+                        <span style={{ color: '#64748b' }}>الرقم: </span>
+                        <strong style={{ color: '#0f172a' }}>#{printInvoice.invoice_number}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b' }}>التاريخ: </span>
+                        <strong style={{ color: '#0f172a' }}>{printInvoice.invoice_date ? printInvoice.invoice_date.split('T')[0] : ''}</strong>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>فاتورة Invoice</h2>
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '0.85rem', justifyContent: 'center' }}>
-                    <label><input type="radio" readOnly checked={printInvoice.payment_type === 'cash'} /> نقداً Cash</label>
-                    <label><input type="radio" readOnly checked={printInvoice.payment_type === 'credit'} /> ذمم Credit</label>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 14px', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>المطلوب من السادة:</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#0f172a', borderBottom: '1px dotted #94a3b8', paddingBottom: '2px', flexGrow: 1 }}>
+                      {printInvoice.customer_name}
+                    </strong>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>طريقة الدفع:</span>
+                    <span style={{ padding: '3px 8px', borderRadius: '4px', fontWeight: 700, background: printInvoice.payment_type === 'cash' ? '#dcfce7' : '#fef3c7', color: printInvoice.payment_type === 'cash' ? '#166534' : '#92400e', border: printInvoice.payment_type === 'cash' ? '1px solid #86efac' : '1px solid #fde68a' }}>
+                      {printInvoice.payment_type === 'cash' ? '💵 نقداً (Cash)' : '📋 ذمم (Credit)'}
+                    </span>
                   </div>
                 </div>
-                <div style={{ textAlign: 'left', fontSize: '0.85rem' }}>
-                  <div>رقم: <strong>#{printInvoice.invoice_number}</strong></div>
-                  <div>التاريخ: <strong>{printInvoice.invoice_date ? printInvoice.invoice_date.split('T')[0] : ''}</strong></div>
+
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', marginBottom: '14px' }}>
+                  <thead>
+                    <tr style={{ background: '#0f172a', color: '#ffffff' }}>
+                      <th style={{ border: '1px solid #0f172a', padding: '8px', width: '36px', textAlign: 'center' }}>#</th>
+                      <th style={{ border: '1px solid #0f172a', padding: '8px 10px', textAlign: 'right' }}>البيان / تفاصيل الصنف</th>
+                      <th style={{ border: '1px solid #0f172a', padding: '8px', width: '70px', textAlign: 'center' }}>الكمية</th>
+                      <th style={{ border: '1px solid #0f172a', padding: '8px', width: '110px', textAlign: 'center' }}>السعر الإفرادي</th>
+                      <th style={{ border: '1px solid #0f172a', padding: '8px', width: '120px', textAlign: 'center' }}>المجموع</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(printInvoice.items || []).map((item, i) => (
+                      <tr key={i} style={{ background: i % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                        <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center', color: '#64748b' }}>{i + 1}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: '7px 10px', fontWeight: 600, color: '#1e293b' }}>{item.item_description}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center', fontWeight: 600 }}>{item.quantity}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center' }}>{parseFloat(item.unit_price).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: '7px', textAlign: 'center', fontWeight: 700, color: '#0f172a' }}>{parseFloat(item.total).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</td>
+                      </tr>
+                    ))}
+                    {Array.from({ length: Math.max(0, 4 - (printInvoice.items || []).length) }).map((_, i) => (
+                      <tr key={`empty-${i}`} style={{ height: '32px', background: ((printInvoice.items || []).length + i) % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                        <td style={{ border: '1px solid #e2e8f0', textAlign: 'center', color: '#cbd5e1' }}>—</td>
+                        <td style={{ border: '1px solid #e2e8f0' }}></td>
+                        <td style={{ border: '1px solid #e2e8f0' }}></td>
+                        <td style={{ border: '1px solid #e2e8f0' }}></td>
+                        <td style={{ border: '1px solid #e2e8f0' }}></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ background: '#f1f5f9' }}>
+                      <td colSpan="3" style={{ border: '1px solid #cbd5e1', borderTop: '2px solid #0f172a', padding: '9px 12px', fontWeight: 800, textAlign: 'right' }}>
+                        المجموع الكلي / Total
+                      </td>
+                      <td colSpan="2" style={{ border: '1px solid #cbd5e1', borderTop: '2px solid #0f172a', padding: '9px 12px', textAlign: 'center', fontWeight: 900, fontSize: '1.1rem', color: '#0f172a', background: '#e2e8f0' }}>
+                        {parseFloat(printInvoice.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} دينار أردني
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                {printInvoice.notes && (
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 10px', fontSize: '0.85rem', marginBottom: '12px' }}>
+                    <strong style={{ color: '#475569' }}>ملاحظات: </strong>
+                    <span>{printInvoice.notes}</span>
+                  </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px', paddingTop: '14px', borderTop: '1px dashed #cbd5e1', fontSize: '0.85rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, color: '#475569', marginBottom: '32px' }}>توقيع المستلم</div>
+                    <div style={{ borderBottom: '1px solid #94a3b8', width: '60%', margin: '0 auto' }}></div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, color: '#475569', marginBottom: '32px' }}>الختم والتوقيع المعتمد</div>
+                    <div style={{ borderBottom: '1px solid #94a3b8', width: '60%', margin: '0 auto' }}></div>
+                  </div>
                 </div>
-              </div>
-
-              <div style={{ marginBottom: '12px', fontSize: '0.95rem', borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>
-                <span>المطلوب من السادة: </span><strong>{printInvoice.customer_name}</strong>
-              </div>
-
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '12px' }}>
-                <thead>
-                  <tr style={{ background: '#f5f5f5' }}>
-                    <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'right' }}>البيان</th>
-                    <th style={{ border: '1px solid #ccc', padding: '6px', width: '70px', textAlign: 'center' }}>الكمية</th>
-                    <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإفرادي</th>
-                    <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإجمالي</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(printInvoice.items || []).map((item, i) => (
-                    <tr key={i}>
-                      <td style={{ border: '1px solid #ccc', padding: '6px 10px' }}>{item.item_description}</td>
-                      <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{item.quantity}</td>
-                      <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{parseFloat(item.unit_price).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
-                      <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center', fontWeight: 600 }}>{parseFloat(item.total).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
-                    </tr>
-                  ))}
-                  {Array.from({ length: Math.max(0, 5 - (printInvoice.items || []).length) }).map((_, i) => (
-                    <tr key={`empty-${i}`}>
-                      <td style={{ border: '1px solid #ccc', padding: '12px' }}>&nbsp;</td>
-                      <td style={{ border: '1px solid #ccc' }}></td>
-                      <td style={{ border: '1px solid #ccc' }}></td>
-                      <td style={{ border: '1px solid #ccc' }}></td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr style={{ background: '#f5f5f5' }}>
-                    <td colSpan="3" style={{ border: '1px solid #ccc', padding: '8px 10px', fontWeight: 700, textAlign: 'right' }}>المجموع / Total</td>
-                    <td style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center', fontWeight: 700, fontSize: '1rem' }}>
-                      {parseFloat(printInvoice.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-
-              {printInvoice.notes && <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px' }}>ملاحظات: {printInvoice.notes}</div>}
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', fontSize: '0.85rem' }}>
-                <div>توقيع المستلم: ____________________</div>
-                <div>توقيع المسؤول: ____________________</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', padding: '12px', background: 'var(--bg-secondary)' }}>

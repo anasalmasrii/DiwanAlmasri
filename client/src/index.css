@@ -1381,8 +1381,42 @@ input, select, textarea, button {
   /* إخفاء عناصر واجهة المستخدم غير الضرورية */
   .sidebar, .sidebar-overlay, header, .page-header, 
   .card:not(#report-preview), .card-header, 
-  .hamburger, .header-actions, .no-print {
+  .hamburger, .header-actions, .no-print,
+  .modal-close, .modal-footer, button, .btn {
     display: none !important;
+  }
+
+  /* جعل المودال شفافاً وممتداً للطباعة */
+  .modal-overlay {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .modal {
+    position: static !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #print-area {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   /* إعادة تعيين تخطيط التطبيق لملء الصفحة */
