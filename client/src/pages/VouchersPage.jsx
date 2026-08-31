@@ -469,6 +469,7 @@ function DebtsTab({ apiFetch }) {
   const [editingDebt, setEditingDebt] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [payConfirm, setPayConfirm] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('unpaid');
@@ -566,6 +567,22 @@ function DebtsTab({ apiFetch }) {
     } catch {
       showToast('حدث خطأ أثناء السداد', 'error');
     }
+  };
+
+  const handleViewDebt = async (debt) => {
+    if (debt.invoice_id) {
+      try {
+        const res = await apiFetch(`/api/invoices/${debt.invoice_id}`);
+        if (res.ok) {
+          const invData = await res.json();
+          setViewItem({ type: 'invoice', data: invData });
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setViewItem({ type: 'debt', data: debt });
   };
 
   const filtered = debts.filter((e) => {
@@ -666,6 +683,7 @@ function DebtsTab({ apiFetch }) {
                     </td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
+                        <button className="btn btn-secondary btn-sm" onClick={() => handleViewDebt(debt)} title="عرض">عرض</button>
                         {debt.status === 'unpaid' && (
                           <button className="btn btn-success btn-sm" onClick={() => setPayConfirm(debt)} title="تسجيل السداد">
                             💳 سداد
@@ -794,6 +812,111 @@ function DebtsTab({ apiFetch }) {
             <div className="modal-footer">
               <button className="btn btn-danger" onClick={handleDelete}>🗑️ نعم، احذف</button>
               <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* مودال عرض تفاصيل الذمة / الفاتورة المرتبطة */}
+      {viewItem && (
+        <div className="modal-overlay" onClick={() => setViewItem(null)}>
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: viewItem.type === 'invoice' ? '750px' : '520px',
+              width: '95%',
+              background: 'white',
+              color: '#000',
+              borderRadius: '12px',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>
+                  {viewItem.type === 'invoice' ? `معاينة الفاتورة #${viewItem.data.invoice_number}` : 'تفاصيل الذمة'}
+                </strong>
+              </div>
+              <button className="modal-close" onClick={() => setViewItem(null)}>✕</button>
+            </div>
+
+            {viewItem.type === 'invoice' ? (
+              <div style={{ padding: '24px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }} id="print-area">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <img src="/DiwanAlmasri-logo.png" alt="ديوان المصري" style={{ width: '65px', height: '65px', objectFit: 'contain' }} />
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>ديوان آل المصري</h3>
+                      <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#666' }}>عمان - الأردن</p>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>فاتورة Invoice</h2>
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '0.85rem', justifyContent: 'center' }}>
+                      <label><input type="radio" readOnly checked={viewItem.data.payment_type === 'cash'} /> نقداً Cash</label>
+                      <label><input type="radio" readOnly checked={viewItem.data.payment_type === 'credit'} /> ذمم Credit</label>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'left', fontSize: '0.85rem' }}>
+                    <div>رقم: <strong>#{viewItem.data.invoice_number}</strong></div>
+                    <div>التاريخ: <strong>{viewItem.data.invoice_date ? viewItem.data.invoice_date.split('T')[0] : ''}</strong></div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '12px', fontSize: '0.95rem', borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>
+                  <span>المطلوب من السادة: </span><strong>{viewItem.data.customer_name}</strong>
+                </div>
+
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '12px' }}>
+                  <thead>
+                    <tr style={{ background: '#f5f5f5' }}>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'right' }}>البيان</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px', width: '70px', textAlign: 'center' }}>الكمية</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإفرادي</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px', width: '110px', textAlign: 'center' }}>الإجمالي</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(viewItem.data.items || []).map((item, i) => (
+                      <tr key={i}>
+                        <td style={{ border: '1px solid #ccc', padding: '6px 10px' }}>{item.item_description}</td>
+                        <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{item.quantity}</td>
+                        <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center' }}>{parseFloat(item.unit_price).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
+                        <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'center', fontWeight: 600 }}>{parseFloat(item.total).toLocaleString('en-US', { minimumFractionDigits: 3 })}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ background: '#f5f5f5' }}>
+                      <td colSpan="3" style={{ border: '1px solid #ccc', padding: '8px 10px', fontWeight: 700, textAlign: 'right' }}>المجموع / Total</td>
+                      <td style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center', fontWeight: 700, fontSize: '1rem' }}>
+                        {parseFloat(viewItem.data.total || 0).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                {viewItem.data.notes && <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px' }}>ملاحظات: {viewItem.data.notes}</div>}
+              </div>
+            ) : (
+              <div style={{ padding: '24px', direction: 'rtl' }}>
+                <div style={{ background: 'var(--bg-tertiary)', borderRadius: '8px', padding: '16px', fontSize: '0.95rem', lineHeight: '2' }}>
+                  <div><span style={{ color: 'var(--text-muted)' }}>البيان:</span> <strong>{viewItem.data.description}</strong></div>
+                  <div><span style={{ color: 'var(--text-muted)' }}>الجهة الدائنة:</span> <strong>{viewItem.data.creditor_name || '—'}</strong></div>
+                  <div><span style={{ color: 'var(--text-muted)' }}>المبلغ:</span> <strong style={{ color: 'var(--danger)', fontSize: '1.2rem' }}>{parseFloat(viewItem.data.amount).toLocaleString('en-US', { minimumFractionDigits: 3 })} د.أ</strong></div>
+                  <div><span style={{ color: 'var(--text-muted)' }}>تاريخ الذمة:</span> <strong>{viewItem.data.debt_date ? viewItem.data.debt_date.split('T')[0] : '—'}</strong></div>
+                  <div><span style={{ color: 'var(--text-muted)' }}>الحالة:</span> <span className={`badge ${viewItem.data.status === 'paid' ? 'badge-active' : 'badge-danger'}`}>{viewItem.data.status === 'paid' ? '✓ مسددة' : '⏳ غير مسددة'}</span></div>
+                  {viewItem.data.paid_date && <div><span style={{ color: 'var(--text-muted)' }}>تاريخ السداد:</span> <strong>{viewItem.data.paid_date.split('T')[0]}</strong></div>}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', padding: '12px 20px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)' }}>
+              {viewItem.type === 'invoice' && (
+                <button className="btn btn-primary" onClick={() => window.print()}>🖨️ طباعة</button>
+              )}
+              <button className="btn btn-secondary" onClick={() => setViewItem(null)}>إغلاق</button>
             </div>
           </div>
         </div>
@@ -1017,7 +1140,7 @@ function InvoicesTab({ apiFetch }) {
                       onClick={() => openPrint(inv)}
                       title="اضغط لعرض الفاتورة"
                     >
-                      #{inv.invoice_number} 🔍
+                      #{inv.invoice_number}
                     </td>
                     <td data-label="التاريخ">{inv.invoice_date ? inv.invoice_date.split('T')[0] : '—'}</td>
                     <td data-label="العميل" style={{ fontWeight: 600 }}>{inv.customer_name}</td>
@@ -1042,7 +1165,7 @@ function InvoicesTab({ apiFetch }) {
                     </td>
                     <td data-label="الإجراءات">
                       <div className="action-buttons">
-                        <button className="btn btn-secondary btn-sm" onClick={() => openPrint(inv)} title="عرض الفاتورة">👁️ عرض</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openPrint(inv)} title="عرض الفاتورة">عرض</button>
                         <button className="btn btn-primary btn-sm" onClick={() => openPrint(inv)} title="طباعة">🖨️</button>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(inv)} title="تعديل">✏️</button>
                         {inv.is_transferred ? (
