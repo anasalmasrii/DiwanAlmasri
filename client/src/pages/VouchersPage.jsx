@@ -872,6 +872,7 @@ function InvoicesTab({ apiFetch }) {
                       <div className="action-buttons">
                         <button className="btn btn-primary btn-sm" onClick={() => openPrint(inv)} title="طباعة">🖨️</button>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(inv)} title="تعديل">✏️</button>
+                        <button className="btn btn-sm" style={{ background: 'rgba(234,179,8,0.15)', color: '#ca8a04', border: '1px solid rgba(234,179,8,0.3)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px' }} onClick={() => setExpenseConfirm(inv)} title="إضافة للمصاريف">📤 مصروف</button>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(inv)} title="حذف">🗑️</button>
                       </div>
                     </td>
