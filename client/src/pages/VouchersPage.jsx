@@ -830,19 +830,36 @@ function DebtsTab({ apiFetch }) {
               color: '#000',
               borderRadius: '12px',
               overflow: 'hidden',
+              position: 'relative',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>
-                  {viewItem.type === 'invoice' ? `معاينة الفاتورة #${viewItem.data.invoice_number}` : 'تفاصيل الذمة'}
-                </strong>
-              </div>
-              <button className="modal-close" onClick={() => setViewItem(null)}>✕</button>
-            </div>
+            <button
+              className="modal-close no-print"
+              onClick={() => setViewItem(null)}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                zIndex: 10,
+                background: '#f1f5f9',
+                border: '1px solid #cbd5e1',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                color: '#475569'
+              }}
+            >
+              ✕
+            </button>
 
             {viewItem.type === 'invoice' ? (
-              <div style={{ padding: '20px 24px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', background: '#ffffff', color: '#0f172a' }} id="print-area">
+              <div style={{ padding: '24px 24px 16px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', background: '#ffffff', color: '#0f172a' }} id="print-area">
+                <style>{`@media print { @page { size: portrait; margin: 10mm; } }`}</style>
                 <div style={{ border: '2px solid #0f172a', borderRadius: '8px', padding: '18px', background: '#ffffff' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0f172a', paddingBottom: '14px', marginBottom: '14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1432,15 +1449,32 @@ function InvoicesTab({ apiFetch }) {
       {/* مودال عرض وطباعة الفاتورة */}
       {showPrint && printInvoice && (
         <div className="modal-overlay" onClick={() => setShowPrint(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '750px', width: '95%', background: 'white', color: '#000', borderRadius: '12px', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1.2rem' }}>📄</span>
-                <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>معاينة الفاتورة #{printInvoice.invoice_number}</strong>
-              </div>
-              <button className="modal-close" onClick={() => setShowPrint(false)}>✕</button>
-            </div>
-            <div style={{ padding: '20px 24px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', background: '#ffffff', color: '#0f172a' }} id="print-area">
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '750px', width: '95%', background: 'white', color: '#000', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
+            <button
+              className="modal-close no-print"
+              onClick={() => setShowPrint(false)}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                zIndex: 10,
+                background: '#f1f5f9',
+                border: '1px solid #cbd5e1',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                color: '#475569'
+              }}
+            >
+              ✕
+            </button>
+            <div style={{ padding: '24px 24px 16px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', background: '#ffffff', color: '#0f172a' }} id="print-area">
+              <style>{`@media print { @page { size: portrait; margin: 10mm; } }`}</style>
               <div style={{ border: '2px solid #0f172a', borderRadius: '8px', padding: '18px', background: '#ffffff' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0f172a', paddingBottom: '14px', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
