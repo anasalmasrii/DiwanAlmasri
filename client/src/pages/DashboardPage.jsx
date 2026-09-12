@@ -10,6 +10,26 @@ import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/StatCard';
 import { arabicMonths } from '../components/Header';
 
+// ─── مكوّن قسم قابل للطي ───────────────────────────────────────────────────
+function Section({ title, icon, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="dashboard-section">
+      <button
+        className="dashboard-section-header"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <span className="dashboard-section-title">
+          <span>{icon}</span> {title}
+        </span>
+        <span className={`dashboard-section-chevron ${open ? 'open' : ''}`}>▾</span>
+      </button>
+      {open && <div className="dashboard-section-body">{children}</div>}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { apiFetch } = useAuth();
   const [stats, setStats] = useState(null);
@@ -53,18 +73,26 @@ export default function DashboardPage() {
 
   const monthName = stats.currentMonth === 'all' ? 'جميع الأشهر' : arabicMonths[(stats.currentMonth || 1) - 1];
 
+  // مساعد لإنشاء رابط بطاقة
+  const C = ({ to, children }) => (
+    <Link to={to} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }} className="stat-card-link">
+      {children}
+    </Link>
+  );
+
   return (
     <div>
+      {/* ─── رأس الصفحة ─────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>لوحة المعلومات</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <label style={{ fontWeight: 'bold' }}>اختر الشهر:</label>
-          <select 
-            className="form-control" 
-            style={{ 
-              width: '150px', 
-              backgroundColor: '#1a1f36', 
-              color: '#e2e8f0', 
+          <select
+            className="form-control"
+            style={{
+              width: '150px',
+              backgroundColor: '#1a1f36',
+              color: '#e2e8f0',
               border: '1px solid #2d3748',
               borderRadius: '8px',
               padding: '8px 12px',
@@ -72,150 +100,33 @@ export default function DashboardPage() {
               outline: 'none',
               fontFamily: 'inherit'
             }}
-            value={selectedMonth} 
+            value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
           >
             <option value="all">جميع الأشهر</option>
             {arabicMonths.map((m, i) => (
-              <option key={i+1} value={i+1}>{i+1} - {m}</option>
+              <option key={i + 1} value={i + 1}>{i + 1} - {m}</option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* بطاقات الإحصائيات */}
-      <div className="stats-grid">
-        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="💰"
-            value={stats.totalTreasury}
-            label="إجمالي الصندوق (قبل المصاريف)"
-            color="blue"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} title="صافي الصندوق = إجمالي الإيرادات - إجمالي المصاريف">
-          <StatCard
-            icon="🏦"
-            value={stats.netTreasury ?? stats.totalTreasury}
-            label="صافي الصندوق (بعد المصاريف)"
-            color="green"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/expenses" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="🛠️"
-            value={stats.totalExpenses ?? 0}
-            label="إجمالي المصاريف والصيانة"
-            color="red"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/debts" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="📜"
-            value={stats.totalUnpaidDebts ?? 0}
-            label="الذمم المستحقة (غير مسددة)"
-            color="red"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/external-contributions" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="🤝"
-            value={stats.totalExternalContributions ?? 0}
-            label={`مساهمات خارج الأعضاء (${stats.externalContributorsCount ?? 0} مساهم)`}
-            color="green"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/vouchers" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="🧾"
-            value={stats.totalReceiptVouchers ?? 0}
-            label="إجمالي سندات القبض"
-            color="green"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/vouchers" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="💸"
-            value={stats.totalPaymentVouchers ?? 0}
-            label="إجمالي سندات الصرف"
-            color="red"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/members" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="👥"
-            value={stats.totalMembers}
-            label="إجمالي الأعضاء النشطين"
-            color="gold"
-          />
-        </Link>
-        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="💰"
-            value={stats.monthlyRevenueTotal}
-            label={stats.currentMonth === 'all' ? 'إجمالي إيرادات جميع الأشهر' : `إجمالي إيرادات شهر ${stats.currentMonth}`}
-            color="green"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="💵"
-            value={stats.monthlyRevenueSubscriptions}
-            label="إيرادات الاشتراكات"
-            color="blue"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="🎁"
-            value={stats.monthlyRevenueContributions}
-            label="إيرادات المساهمات"
-            color="gold"
-            suffix="د.أ"
-          />
-        </Link>
-        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="✅"
-            value={stats.paidSubscriptionsCount}
-            label={stats.currentMonth === 'all' ? 'المسددون للاشتراك (جميع الأشهر)' : `المسددون للاشتراك (شهر ${stats.currentMonth})`}
-            color="blue"
-          />
-        </Link>
-        <Link to="/payments" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-          <StatCard
-            icon="✨"
-            value={stats.paidContributionsCount}
-            label="المسددون للمساهمات"
-            color="gold"
-          />
-        </Link>
-        <Link to="/defaulters" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+      {/* ─── الملخص المالي (دائماً ظاهر - 4 بطاقات رئيسية) ─── */}
+      <div className="stats-grid stats-grid-4">
+        <C to="/payments"><StatCard icon="💰" value={stats.totalTreasury} label="إجمالي الصندوق" color="blue" suffix="د.أ" /></C>
+        <C to="/payments"><StatCard icon="🏦" value={stats.netTreasury ?? stats.totalTreasury} label="صافي الصندوق" color="green" suffix="د.أ" /></C>
+        <C to="/expenses"><StatCard icon="🛠️" value={stats.totalExpenses ?? 0} label="إجمالي المصاريف" color="red" suffix="د.أ" /></C>
+        <C to="/defaulters">
           <StatCard
             icon={stats.currentMonth === 'all' ? '⚠️' : (stats.isAfterDeadline ? '🚨' : '⏳')}
             value={stats.unpaidCount}
-            label={
-              stats.currentMonth === 'all'
-                ? 'متخلفين عن السداد كلياً'
-                : (stats.isAfterDeadline
-                  ? 'متخلفين عن السداد'
-                  : 'لم يسددوا بعد')
-            }
+            label={stats.currentMonth === 'all' ? 'متخلفين عن السداد' : (stats.isAfterDeadline ? 'متخلفين عن السداد' : 'لم يسددوا بعد')}
             color="red"
           />
-        </Link>
+        </C>
       </div>
 
-      {/* تنبيه الموعد النهائي */}
+      {/* ─── تنبيه الموعد النهائي ─────────────────────────────── */}
       {stats.currentMonth !== 'all' && (
         <div className={`deadline-banner ${stats.isAfterDeadline ? 'after' : 'before'}`}>
           <span className="deadline-icon">{stats.isAfterDeadline ? '🔴' : '🟡'}</span>
@@ -227,7 +138,47 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* قائمة مختصرة للمتخلفين */}
+      {/* ─── تفاصيل الإيرادات (قابل للطي) ──────────────────── */}
+      <Section title="تفاصيل الإيرادات" icon="📊" defaultOpen={false}>
+        <div className="stats-grid">
+          <C to="/payments">
+            <StatCard icon="💰" value={stats.monthlyRevenueTotal}
+              label={stats.currentMonth === 'all' ? 'إجمالي الإيرادات' : `إيرادات شهر ${stats.currentMonth}`}
+              color="green" suffix="د.أ" />
+          </C>
+          <C to="/payments"><StatCard icon="💵" value={stats.monthlyRevenueSubscriptions} label="إيرادات الاشتراكات" color="blue" suffix="د.أ" /></C>
+          <C to="/payments"><StatCard icon="🎁" value={stats.monthlyRevenueContributions} label="إيرادات المساهمات" color="gold" suffix="د.أ" /></C>
+          <C to="/external-contributions">
+            <StatCard icon="🤝" value={stats.totalExternalContributions ?? 0}
+              label={`مساهمات خارجية (${stats.externalContributorsCount ?? 0} مساهم)`}
+              color="green" suffix="د.أ" />
+          </C>
+        </div>
+      </Section>
+
+      {/* ─── سندات القبض والصرف (قابل للطي) ────────────────── */}
+      <Section title="سندات القبض والصرف" icon="🧾" defaultOpen={false}>
+        <div className="stats-grid stats-grid-2">
+          <C to="/vouchers"><StatCard icon="🧾" value={stats.totalReceiptVouchers ?? 0} label="إجمالي سندات القبض" color="green" suffix="د.أ" /></C>
+          <C to="/vouchers"><StatCard icon="💸" value={stats.totalPaymentVouchers ?? 0} label="إجمالي سندات الصرف" color="red" suffix="د.أ" /></C>
+        </div>
+      </Section>
+
+      {/* ─── إحصائيات الأعضاء (قابل للطي) ──────────────────── */}
+      <Section title="إحصائيات الأعضاء" icon="👥" defaultOpen={false}>
+        <div className="stats-grid">
+          <C to="/members"><StatCard icon="👥" value={stats.totalMembers} label="الأعضاء النشطون" color="gold" /></C>
+          <C to="/payments">
+            <StatCard icon="✅" value={stats.paidSubscriptionsCount}
+              label={stats.currentMonth === 'all' ? 'المسددون للاشتراك (الكل)' : `المسددون للاشتراك (شهر ${stats.currentMonth})`}
+              color="blue" />
+          </C>
+          <C to="/payments"><StatCard icon="✨" value={stats.paidContributionsCount} label="المسددون للمساهمات" color="gold" /></C>
+          <C to="/debts"><StatCard icon="📜" value={stats.totalUnpaidDebts ?? 0} label="الذمم المستحقة (غير مسددة)" color="red" suffix="د.أ" /></C>
+        </div>
+      </Section>
+
+      {/* ─── قائمة المتخلفين ─────────────────────────────────── */}
       <div className="card">
         <div className="card-header">
           <h2 className="card-title">
