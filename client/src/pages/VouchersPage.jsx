@@ -233,12 +233,9 @@ function VouchersTab({ apiFetch }) {
                 />
               </div>
             </div>
-            <div className="form-group" style={{ alignSelf: 'flex-end', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button className="btn" style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', fontWeight: 600 }} onClick={() => openAddModal('receipt')}>
-                🟢 سند قبض جديد
-              </button>
-              <button className="btn" style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', fontWeight: 600 }} onClick={() => openAddModal('payment')}>
-                🔴 سند صرف جديد
+            <div className="form-group" style={{ alignSelf: 'flex-end' }}>
+              <button className="btn btn-primary" onClick={() => openAddModal()}>
+                ➕ إضافة سند جديد
               </button>
             </div>
           </div>
@@ -304,37 +301,98 @@ function VouchersTab({ apiFetch }) {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">{editingVoucher ? '✏️ تعديل السند' : '➕ إضافة سند جديد'}</h3>
+              <h3 className="modal-title">
+                {editingVoucher ? `✏️ تعديل سند ${form.voucher_type === 'receipt' ? 'القبض' : 'الصرف'}` : '➕ إضافة سند مالي جديد'}
+              </h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">نوع السند *</label>
-                    <select className="form-select" value={form.voucher_type} onChange={(e) => handleTypeChange(e.target.value)} required>
-                      <option value="receipt">🟢 سند قبض</option>
-                      <option value="payment">🔴 سند صرف</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">رقم السند</label>
-                    <input type="number" className="form-input" value={form.voucher_number} onChange={(e) => setForm({ ...form, voucher_number: e.target.value })} />
+                {/* اختيار نوع السند (قبض أو صرف) من داخل البوب اب */}
+                <div className="form-group" style={{ marginBottom: '18px' }}>
+                  <label className="form-label" style={{ fontWeight: 700, marginBottom: '8px' }}>
+                    نوع السند المالي *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange('receipt')}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '8px',
+                        border: form.voucher_type === 'receipt' ? '2px solid #10b981' : '1px solid var(--border)',
+                        backgroundColor: form.voucher_type === 'receipt' ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-secondary)',
+                        color: form.voucher_type === 'receipt' ? '#059669' : 'var(--text-secondary)',
+                        fontWeight: form.voucher_type === 'receipt' ? 800 : 500,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.2rem' }}>🟢</span>
+                      <span>سند قبض (قبض مالي)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange('payment')}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '8px',
+                        border: form.voucher_type === 'payment' ? '2px solid #ef4444' : '1px solid var(--border)',
+                        backgroundColor: form.voucher_type === 'payment' ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-secondary)',
+                        color: form.voucher_type === 'payment' ? '#dc2626' : 'var(--text-secondary)',
+                        fontWeight: form.voucher_type === 'payment' ? 800 : 500,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.2rem' }}>🔴</span>
+                      <span>سند صرف (صرف مالي)</span>
+                    </button>
                   </div>
                 </div>
 
                 <div className="form-group">
+                  <label className="form-label">رقم السند</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    placeholder="توليد تلقائي..."
+                    value={form.voucher_number}
+                    onChange={(e) => setForm({ ...form, voucher_number: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                    <label className="form-label" style={{ margin: 0 }}>
-                      {form.voucher_type === 'payment' ? 'صرف إلى *' : 'استلم من *'}
+                    <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>
+                      {form.voucher_type === 'receipt' ? 'استلمنا من (الدافع) *' : 'يُصرف إلى (المستفيد) *'}
                     </label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={form.use_member} onChange={(e) => setForm({ ...form, use_member: e.target.checked, party_name: '', member_id: '' })} />
+                      <input
+                        type="checkbox"
+                        checked={form.use_member}
+                        onChange={(e) => setForm({ ...form, use_member: e.target.checked, party_name: '', member_id: '' })}
+                      />
                       ربط بعضو مسجل
                     </label>
                   </div>
                   {form.use_member ? (
-                    <select className="form-select" value={form.member_id} onChange={(e) => setForm({ ...form, member_id: e.target.value })} required={form.use_member}>
+                    <select
+                      className="form-select"
+                      value={form.member_id}
+                      onChange={(e) => setForm({ ...form, member_id: e.target.value })}
+                      required={form.use_member}
+                    >
                       <option value="">-- اختر العضو --</option>
                       {members.map((m) => (
                         <option key={m.id} value={m.id}>
@@ -346,7 +404,7 @@ function VouchersTab({ apiFetch }) {
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="اسم الجهة / الشركة / الشخص..."
+                      placeholder={form.voucher_type === 'receipt' ? 'اسم الدافع / الجهة / الشخص...' : 'اسم المستفيد / الجهة / الشركة...'}
                       value={form.party_name}
                       onChange={(e) => setForm({ ...form, party_name: e.target.value })}
                       required={!form.use_member}
@@ -357,17 +415,41 @@ function VouchersTab({ apiFetch }) {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">المبلغ (د.أ) *</label>
-                    <input type="number" className="form-input" placeholder="0.000" step="0.001" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="0.000"
+                      step="0.001"
+                      min="0"
+                      value={form.amount}
+                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      required
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">التاريخ *</label>
-                    <input type="date" className="form-input" value={form.voucher_date} onChange={(e) => setForm({ ...form, voucher_date: e.target.value })} required />
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={form.voucher_date}
+                      onChange={(e) => setForm({ ...form, voucher_date: e.target.value })}
+                      required
+                    />
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">البيان / سبب الصرف</label>
-                  <textarea className="form-input" placeholder="وصف السند..." rows="2" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ resize: 'vertical' }} />
+                  <label className="form-label">
+                    {form.voucher_type === 'receipt' ? 'البيان / مقابل ماذا تم القبض' : 'البيان / سبب الصرف'}
+                  </label>
+                  <textarea
+                    className="form-input"
+                    placeholder={form.voucher_type === 'receipt' ? 'مثال: تبرع، دفعة اشتراك، مساهمة...' : 'مثال: فواتير كهرباء، صيانة مكيفات، ضيافة...'}
+                    rows="2"
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    style={{ resize: 'vertical' }}
+                  />
                 </div>
 
                 {formError && (
@@ -377,10 +459,24 @@ function VouchersTab({ apiFetch }) {
                 )}
               </div>
               <div className="modal-footer">
-                <button type="submit" className="btn btn-primary">{editingVoucher ? '💾 حفظ التعديلات' : '➕ إضافة السند'}</button>
+                <button
+                  type="submit"
+                  className="btn"
+                  style={{
+                    backgroundColor: form.voucher_type === 'receipt' ? '#10b981' : '#ef4444',
+                    color: '#fff',
+                    border: 'none',
+                    fontWeight: 700,
+                  }}
+                >
+                  {editingVoucher
+                    ? '💾 حفظ التعديلات'
+                    : (form.voucher_type === 'receipt' ? '🟢 حفظ سند القبض' : '🔴 حفظ سند الصرف')}
+                </button>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>إلغاء</button>
               </div>
             </form>
+
           </div>
         </div>
       )}
