@@ -33,18 +33,40 @@ router.get('/', async (req, res) => {
     );
     const totalMembers = totalResult ? parseInt(totalResult.count, 10) : 0;
 
-    // إجمالي المصاريف الكلية
+    // إجمالي المصاريف المباشرة
     const expensesResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM expenses");
-    const totalExpenses = expensesResult ? parseFloat(expensesResult.total) : 0;
+    const totalExpensesOnly = expensesResult ? parseFloat(expensesResult.total) : 0;
+
+    // إجمالي سندات الصرف
+    let totalPaymentVouchers = 0;
+    try {
+      const vouchersPaymentResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM vouchers WHERE voucher_type = 'payment'");
+      totalPaymentVouchers = vouchersPaymentResult ? parseFloat(vouchersPaymentResult.total) : 0;
+    } catch (e) {
+      console.error("Error fetching payment vouchers:", e);
+    }
+
+    // إجمالي المصاريف الكلية (مصاريف الصيانة والديوان + سندات الصرف)
+    const totalExpenses = totalExpensesOnly + totalPaymentVouchers;
 
     // إجمالي المساهمات الخارجية الكلية
     const extContribResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM external_contributions");
     const totalExternalContributions = extContribResult ? parseFloat(extContribResult.total) : 0;
     const externalContributorsCount = extContribResult ? parseInt(extContribResult.count, 10) : 0;
 
-    // إجمالي أموال الصندوق الكلية (تشمل مدفوعات الأعضاء والمساهمات الخارجية)
+    // إجمالي سندات القبض
+    let totalReceiptVouchers = 0;
+    try {
+      const vouchersReceiptResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM vouchers WHERE voucher_type = 'receipt'");
+      totalReceiptVouchers = vouchersReceiptResult ? parseFloat(vouchersReceiptResult.total) : 0;
+    } catch (e) {
+      console.error("Error fetching receipt vouchers:", e);
+    }
+
+    // إجمالي أموال الصندوق الكلية (تشمل مدفوعات الأعضاء، المساهمات الخارجية، وسندات القبض)
     const treasuryResult = await db.get("SELECT COALESCE(SUM(amount), 0) as total FROM payments");
-    const totalTreasury = (treasuryResult ? parseFloat(treasuryResult.total) : 0) + totalExternalContributions;
+    const totalPayments = treasuryResult ? parseFloat(treasuryResult.total) : 0;
+    const totalTreasury = totalPayments + totalExternalContributions + totalReceiptVouchers;
 
     // إجمالي الذمم غير المسددة
     let totalUnpaidDebts = 0;
@@ -58,6 +80,8 @@ router.get('/', async (req, res) => {
     let monthlyRevenueSubscriptions = 0;
     let monthlyRevenueContributions = 0;
     let monthlyExternalContributions = 0;
+    let monthlyReceiptVouchers = 0;
+    let monthlyPaymentVouchers = 0;
     let paidSubscriptionsCount = 0;
     let paidContributionsCount = 0;
     let unpaidCount = 0;
@@ -85,6 +109,8 @@ router.get('/', async (req, res) => {
       `);
       unpaidCount = unpaidRes ? parseInt(unpaidRes.count, 10) : 0;
       monthlyExternalContributions = totalExternalContributions;
+      monthlyReceiptVouchers = totalReceiptVouchers;
+      monthlyPaymentVouchers = totalPaymentVouchers;
       isAfterDeadline = false; // No specific deadline for 'all'
     } else {
       // إحصائيات لشهر محدد
@@ -133,17 +159,39 @@ router.get('/', async (req, res) => {
         [monthNum, currentYear]
       );
       monthlyExternalContributions = extMonthlyRes ? parseFloat(extMonthlyRes.total) : 0;
+
+      try {
+        const vReceiptMonthlyRes = await db.get(
+          "SELECT COALESCE(SUM(amount), 0) as total FROM vouchers WHERE voucher_type = 'receipt' AND cast(strftime('%m', voucher_date) as integer) = ? AND cast(strftime('%Y', voucher_date) as integer) = ?",
+          [monthNum, currentYear]
+        );
+        monthlyReceiptVouchers = vReceiptMonthlyRes ? parseFloat(vReceiptMonthlyRes.total) : 0;
+      } catch (e) {}
+
+      try {
+        const vPaymentMonthlyRes = await db.get(
+          "SELECT COALESCE(SUM(amount), 0) as total FROM vouchers WHERE voucher_type = 'payment' AND cast(strftime('%m', voucher_date) as integer) = ? AND cast(strftime('%Y', voucher_date) as integer) = ?",
+          [monthNum, currentYear]
+        );
+        monthlyPaymentVouchers = vPaymentMonthlyRes ? parseFloat(vPaymentMonthlyRes.total) : 0;
+      } catch (e) {}
     }
 
-    const monthlyRevenueTotal = monthlyRevenueSubscriptions + monthlyRevenueContributions + monthlyExternalContributions;
+    const monthlyRevenueTotal = monthlyRevenueSubscriptions + monthlyRevenueContributions + monthlyExternalContributions + monthlyReceiptVouchers;
 
     res.json({
       totalMembers,
       monthlyRevenueTotal,
       monthlyRevenueSubscriptions,
       monthlyRevenueContributions,
+      monthlyExternalContributions,
+      monthlyReceiptVouchers,
+      monthlyPaymentVouchers,
       totalTreasury,
       totalExpenses,
+      totalExpensesOnly,
+      totalReceiptVouchers,
+      totalPaymentVouchers,
       totalExternalContributions,
       externalContributorsCount,
       totalUnpaidDebts,
@@ -156,6 +204,7 @@ router.get('/', async (req, res) => {
       currentYear,
       currentDay
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'خطأ داخلي' });

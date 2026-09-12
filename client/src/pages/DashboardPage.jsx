@@ -130,6 +130,24 @@ export default function DashboardPage() {
             suffix="د.أ"
           />
         </Link>
+        <Link to="/vouchers" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="🧾"
+            value={stats.totalReceiptVouchers ?? 0}
+            label="إجمالي سندات القبض"
+            color="green"
+            suffix="د.أ"
+          />
+        </Link>
+        <Link to="/vouchers" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <StatCard
+            icon="💸"
+            value={stats.totalPaymentVouchers ?? 0}
+            label="إجمالي سندات الصرف"
+            color="red"
+            suffix="د.أ"
+          />
+        </Link>
         <Link to="/members" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
           <StatCard
             icon="👥"
