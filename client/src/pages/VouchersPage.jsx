@@ -62,12 +62,15 @@ function VouchersTab({ apiFetch }) {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const openAddModal = async () => {
-    const nextNum = await fetchNextNumber('payment');
+  const openAddModal = async (defaultType = 'receipt') => {
+    const chosenType = (typeof defaultType === 'string' && (defaultType === 'receipt' || defaultType === 'payment'))
+      ? defaultType 
+      : (filterType === 'payment' ? 'payment' : 'receipt');
+    const nextNum = await fetchNextNumber(chosenType);
     setEditingVoucher(null);
     setFormError('');
     setForm({
-      voucher_type: 'payment',
+      voucher_type: chosenType,
       voucher_number: nextNum,
       amount: '',
       member_id: '',
@@ -103,23 +106,39 @@ function VouchersTab({ apiFetch }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
-    if (!form.amount || !form.voucher_date) {
-      setFormError('المبلغ والتاريخ مطلوبان');
+    const parsedAmount = parseFloat(form.amount);
+    if (!form.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      setFormError('يرجى إدخال مبلغ صحيح أكبر من صفر');
       return;
     }
-    if (!form.use_member && !form.party_name.trim()) {
-      setFormError('يرجى إدخال اسم الجهة أو المستفيد');
+    if (!form.voucher_date) {
+      setFormError('التاريخ مطلوب');
+      return;
+    }
+    if (form.use_member && !form.member_id) {
+      setFormError('يرجى اختيار العضو المسجل من القائمة أو إلغاء تفعيل "ربط بعضو مسجل"');
+      return;
+    }
+    if (!form.use_member && !form.party_name?.trim()) {
+      setFormError(form.voucher_type === 'receipt' ? 'يرجى إدخال اسم المستلم منه (الجهة أو الشخص)' : 'يرجى إدخال اسم المستفيد أو الجهة المصروف لها');
       return;
     }
     try {
       const isEditing = !!editingVoucher;
+      const parsedNum = form.voucher_number && !isNaN(parseInt(form.voucher_number, 10))
+        ? parseInt(form.voucher_number, 10)
+        : null;
+      const parsedMember = (form.use_member && form.member_id && !isNaN(parseInt(form.member_id, 10)))
+        ? parseInt(form.member_id, 10)
+        : null;
+
       const payload = {
         voucher_type: form.voucher_type,
-        voucher_number: form.voucher_number,
-        amount: parseFloat(form.amount),
-        member_id: form.use_member ? parseInt(form.member_id) : null,
-        party_name: form.use_member ? null : form.party_name,
-        description: form.description,
+        voucher_number: parsedNum,
+        amount: parsedAmount,
+        member_id: parsedMember,
+        party_name: form.use_member ? null : (form.party_name?.trim() || null),
+        description: form.description?.trim() || '',
         voucher_date: form.voucher_date,
       };
       const res = await apiFetch(isEditing ? `/api/vouchers/${editingVoucher.id}` : '/api/vouchers', {
@@ -127,15 +146,15 @@ function VouchersTab({ apiFetch }) {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const d = await res.json();
-        setFormError(d.error || 'خطأ في الحفظ');
+        const d = await res.json().catch(() => ({}));
+        setFormError(d.error || 'خطأ في حفظ السند');
         return;
       }
       showToast(isEditing ? 'تم تعديل السند بنجاح' : 'تم إضافة السند بنجاح');
       setShowModal(false);
       reloadData();
-    } catch {
-      setFormError('حدث خطأ أثناء الحفظ');
+    } catch (err) {
+      setFormError(err.message || 'حدث خطأ أثناء الحفظ');
     }
   };
 
@@ -214,8 +233,13 @@ function VouchersTab({ apiFetch }) {
                 />
               </div>
             </div>
-            <div className="form-group" style={{ alignSelf: 'flex-end' }}>
-              <button className="btn btn-primary" onClick={openAddModal}>➕ سند جديد</button>
+            <div className="form-group" style={{ alignSelf: 'flex-end', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button className="btn" style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', fontWeight: 600 }} onClick={() => openAddModal('receipt')}>
+                🟢 سند قبض جديد
+              </button>
+              <button className="btn" style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', fontWeight: 600 }} onClick={() => openAddModal('payment')}>
+                🔴 سند صرف جديد
+              </button>
             </div>
           </div>
         </div>

@@ -157,6 +157,9 @@ export async function initDatabase() {
 
     await pgPool.query(`ALTER TABLE vouchers ADD COLUMN IF NOT EXISTS voucher_number INTEGER;`);
     await pgPool.query(`ALTER TABLE vouchers ADD COLUMN IF NOT EXISTS party_name VARCHAR(255);`);
+    try {
+      await pgPool.query(`ALTER TABLE vouchers ALTER COLUMN member_id DROP NOT NULL;`);
+    } catch(e) {}
 
     await pgPool.query(`
       CREATE TABLE IF NOT EXISTS invoices (
