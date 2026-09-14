@@ -126,18 +126,6 @@ export default function DashboardPage() {
         </C>
       </div>
 
-      {/* ─── تنبيه الموعد النهائي ─────────────────────────────── */}
-      {stats.currentMonth !== 'all' && (
-        <div className={`deadline-banner ${stats.isAfterDeadline ? 'after' : 'before'}`}>
-          <span className="deadline-icon">{stats.isAfterDeadline ? '🔴' : '🟡'}</span>
-          <span>
-            {stats.isAfterDeadline
-              ? `انتهى الموعد النهائي للسداد (يوم 25 من ${monthName}). الأعضاء غير المسددين يُعتبرون متخلفين.`
-              : `الموعد النهائي للسداد: يوم 25 من ${monthName}. لا يزال هناك وقت للسداد.`}
-          </span>
-        </div>
-      )}
-
       {/* ─── تفاصيل الإيرادات (قابل للطي) ──────────────────── */}
       <Section title="تفاصيل الإيرادات" icon="📊" defaultOpen={false}>
         <div className="stats-grid">
@@ -177,6 +165,18 @@ export default function DashboardPage() {
           <C to="/debts"><StatCard icon="📜" value={stats.totalUnpaidDebts ?? 0} label="الذمم المستحقة (غير مسددة)" color="red" suffix="د.أ" /></C>
         </div>
       </Section>
+
+      {/* ─── تنبيه الموعد النهائي ─────────────────────────────── */}
+      {stats.currentMonth !== 'all' && (
+        <div className={`deadline-banner ${stats.isAfterDeadline ? 'after' : 'before'}`}>
+          <span className="deadline-icon">{stats.isAfterDeadline ? '🔴' : '🟡'}</span>
+          <span>
+            {stats.isAfterDeadline
+              ? `انتهى الموعد النهائي للسداد (يوم 25 من ${monthName}). الأعضاء غير المسددين يُعتبرون متخلفين.`
+              : `الموعد النهائي للسداد: يوم 25 من ${monthName}. لا يزال هناك وقت للسداد.`}
+          </span>
+        </div>
+      )}
 
       {/* ─── قائمة المتخلفين ─────────────────────────────────── */}
       <div className="card">
