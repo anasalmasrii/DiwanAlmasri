@@ -740,6 +740,7 @@ function DebtsTab({ apiFetch }) {
             <table className="data-table mobile-cards-table">
               <thead>
                 <tr>
+                  <th>رقم تسلسلي</th>
                   <th>البيان</th>
                   <th>الجهة الدائنة</th>
                   <th>المبلغ</th>
@@ -751,6 +752,7 @@ function DebtsTab({ apiFetch }) {
               <tbody>
                 {filtered.map((debt) => (
                   <tr key={debt.id}>
+                    <td data-label="رقم تسلسلي" style={{ fontWeight: 700, color: 'var(--text-muted)' }}>#{debt.id}</td>
                     <td data-label="البيان" style={{ fontWeight: 600 }}>{debt.description}</td>
                     <td data-label="الجهة الدائنة">{debt.creditor_name || '—'}</td>
                     <td data-label="المبلغ" style={{ fontWeight: 700, color: 'var(--danger)' }}>

@@ -116,14 +116,7 @@ export default function DashboardPage() {
         <C to="/payments"><StatCard icon="💰" value={stats.totalTreasury} label="إجمالي الصندوق" color="blue" suffix="د.أ" /></C>
         <C to="/payments"><StatCard icon="🏦" value={stats.netTreasury ?? stats.totalTreasury} label="صافي الصندوق" color="green" suffix="د.أ" /></C>
         <C to="/expenses"><StatCard icon="🛠️" value={stats.totalExpenses ?? 0} label="إجمالي المصاريف" color="red" suffix="د.أ" /></C>
-        <C to="/defaulters">
-          <StatCard
-            icon={stats.currentMonth === 'all' ? '⚠️' : (stats.isAfterDeadline ? '🚨' : '⏳')}
-            value={stats.unpaidCount}
-            label={stats.currentMonth === 'all' ? 'متخلفين عن السداد' : (stats.isAfterDeadline ? 'متخلفين عن السداد' : 'لم يسددوا بعد')}
-            color="red"
-          />
-        </C>
+        <C to="/debts"><StatCard icon="📜" value={stats.totalUnpaidDebts ?? 0} label="الذمم المستحقة (غير مسددة)" color="red" suffix="د.أ" /></C>
       </div>
 
       {/* ─── تفاصيل الإيرادات (قابل للطي) ──────────────────── */}
@@ -162,7 +155,14 @@ export default function DashboardPage() {
               color="blue" />
           </C>
           <C to="/payments"><StatCard icon="✨" value={stats.paidContributionsCount} label="المسددون للمساهمات" color="gold" /></C>
-          <C to="/debts"><StatCard icon="📜" value={stats.totalUnpaidDebts ?? 0} label="الذمم المستحقة (غير مسددة)" color="red" suffix="د.أ" /></C>
+          <C to="/defaulters">
+            <StatCard
+              icon={stats.currentMonth === 'all' ? '⚠️' : (stats.isAfterDeadline ? '🚨' : '⏳')}
+              value={stats.unpaidCount}
+              label={stats.currentMonth === 'all' ? 'متخلفين عن السداد' : (stats.isAfterDeadline ? 'متخلفين عن السداد' : 'لم يسددوا بعد')}
+              color="red"
+            />
+          </C>
         </div>
       </Section>
 
